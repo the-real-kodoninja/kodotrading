@@ -10,6 +10,9 @@ import SentimentBar from './components/SentimentBar';
 import StockScreener from './components/StockScreener';
 import NimbusAI from './components/NimbusAI';
 import StopLoss from './components/StopLoss';
+import LiveChat from './components/LiveChat';
+import LiveVideo from './components/LiveVideo';
+import PortfolioTracker from './components/PortfolioTracker';
 import './App.css';
 
 const App: React.FC = () => {
@@ -39,12 +42,15 @@ const App: React.FC = () => {
         onLogout={handleLogout}
       />
       <nav>
-        <Link to="/" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Feed</Link>
-        <Link to="/profile" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Profile</Link>
-        <Link to="/news" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>News</Link>
-        <Link to="/screener" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Screener</Link>
-        <Link to="/nimbus" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Nimbus.AI</Link>
-        <Link to="/stoploss" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Stop Loss</Link>
+        <Link to="/" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Feed</Link>
+        <Link to="/profile" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Profile</Link>
+        <Link to="/news" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>News</Link>
+        <Link to="/screener" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Screener</Link>
+        <Link to="/nimbus" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Nimbus.AI</Link>
+        <Link to="/stoploss" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Stop Loss</Link>
+        <Link to="/chat" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Live Chat</Link>
+        <Link to="/video" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Live Video</Link>
+        <Link to="/portfolio" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Portfolio</Link>
       </nav>
       <SentimentBar />
       <main>
@@ -55,6 +61,9 @@ const App: React.FC = () => {
           <Route path="/screener" element={<StockScreener />} />
           <Route path="/nimbus" element={<NimbusAI />} />
           <Route path="/stoploss" element={<StopLoss />} />
+          <Route path="/chat" element={<LiveChat username={username} />} />
+          <Route path="/video" element={<LiveVideo />} />
+          <Route path="/portfolio" element={<PortfolioTracker />} />
         </Routes>
       </main>
     </ThemeProvider>
