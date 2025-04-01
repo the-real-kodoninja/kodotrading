@@ -1,8 +1,15 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+}
+
 nav {
   padding: 10px;
   text-align: center;
   background: #8B0000;
   color: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 a {
@@ -22,32 +29,50 @@ main {
   justify-content: center;
   align-items: flex-start;
   padding: 0 10px;
-  background: linear-gradient(135deg, #FFFFFF, #F5F5F5); /* Light mode */
+  background: #F0F2F5; /* Light mode - softer gray */
 }
 
 @media (prefers-color-scheme: dark) {
   main {
-    background: linear-gradient(135deg, #353839, #424242); /* Dark mode */
+    background: #18191A; /* Dark mode - softer dark */
   }
 }
 
-@media (max-width: 600px) {
-  nav {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+/* Card styling for fluid look */
+.MuiCard-root {
+  border: none;
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
-  a {
-    margin: 5px 0;
+@media (prefers-color-scheme: dark) {
+  .MuiCard-root {
+    background: #242526;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
+}
 
-  .MuiToolbar-root {
-    flex-wrap: wrap;
-    padding: 8px;
-  }
+/* Input fields */
+.MuiTextField-root {
+  background: #FFFFFF;
+  border-radius: 8px;
+}
 
-  .MuiTypography-h6 {
-    font-size: 1.1rem;
+@media (prefers-color-scheme: dark) {
+  .MuiTextField-root {
+    background: #3A3B3C;
   }
+}
+
+/* Buttons */
+.MuiButton-containedPrimary {
+  background: #8B0000;
+  border-radius: 20px;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.MuiButton-containedPrimary:hover {
+  background: #6B0000;
 }

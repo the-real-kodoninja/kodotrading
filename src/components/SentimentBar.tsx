@@ -21,7 +21,7 @@ const SentimentBar: React.FC = () => {
   }, []);
 
   return (
-    <Box sx={{ p: 2, backgroundColor: '#353839', color: '#FFFFFF', mb: 2 }}>
+    <Box sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: 'background.paper' }}>
       <Typography variant="h6">Ticker Sentiment</Typography>
       {Object.entries(sentiment).map(([ticker, { bullish, bearish }]) => {
         const total = bullish + bearish;
@@ -33,7 +33,7 @@ const SentimentBar: React.FC = () => {
             <LinearProgress
               variant="determinate"
               value={bullPercent}
-              sx={{ height: 8, bgcolor: 'red', '& .MuiLinearProgress-bar': { bgcolor: 'green' } }}
+              sx={{ height: 8, borderRadius: 4, bgcolor: '#D32F2F', '& .MuiLinearProgress-bar': { bgcolor: '#2E7D32' } }}
             />
           </Box>
         );

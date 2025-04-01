@@ -51,6 +51,8 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     return () => observerRef.current?.disconnect();
   }, []);
 
+  // Comment out TradingView to avoid EPIPE for now
+  /*
   useEffect(() => {
     Object.entries(showChart).forEach(([index, ticker]) => {
       if (ticker && chartRefs.current[Number(index)] && window.TradingView) {
@@ -71,6 +73,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     time: [1711929600, 1712016000, 1712102400],
     value: ticker === 'AAPL' ? [175, 178, 176] : ticker === 'TSLA' ? [420, 415, 430] : [2800, 2820, 2790],
   });
+  */
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,9 +141,18 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     <Container maxWidth="sm" sx={{ mt: 2 }}>
       <Box sx={{ mb: 2 }}>
         <Typography variant="h6">Watchlist</Typography>
-        {watchlist.map((ticker) => (
-          <Chip key={ticker} label={`$${ticker}`} onDelete={() => setWatchlist((prev) => prev.filter((t) => t !== ticker))} sx={{ mr: 1 }} />
-        ))}
+        {watchlist.length ? (
+          watchlist.map((ticker) => (
+            <Chip
+              key={ticker}
+              label={`$${ticker}`}
+              onDelete={() => setWatchlist((prev) => prev.filter((t) => t !== ticker))}
+              sx={{ mr: 1, mb: 1, bgcolor: isDarkMode ? '#3A3B3C' : '#E4E6EB' }}
+            />
+          ))
+        ) : (
+          <Typography variant="body2" color="text.secondary">Click a ticker to add to your watchlist</Typography>
+        )}
       </Box>
       <TextField
         fullWidth
@@ -164,38 +176,39 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
       </form>
       {filteredPosts.map((post) => (
         <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <Card sx={{ mb: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Card sx={{ mb: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <motion.img
                   src={`https://ui-avatars.com/api/?name=${post.user}&background=8B0000&color=FFFFFF`}
                   alt={post.user}
-                  style={{ width: 32, height: 32, borderRadius: '50%', marginRight: 8 }}
-                  whileHover={{ scale: 1.1, boxShadow: '0 0 8px rgba(139, 0, 0, 0.5)' }}
+                  style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 12 }}
+                  whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.2 }}
                 />
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>
-                  {post.user} <Typography component="span" variant="caption" color="text.secondary">(Trader)</Typography>
-                </Typography>
-                <Typography variant="caption" color="text.secondary">{post.time}</Typography>
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    {post.user} <Typography component="span" variant="caption" color="text.secondary">(Trader)</Typography>
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">{post.time}</Typography>
+                </Box>
               </Box>
-              {post.user === username && <IconButton onClick={() => handleDelete(post.id)}><Delete /></IconButton>}
+              {post.user === username && <IconButton onClick={() => handleDelete(post.id)}><Delete fontSize="small" /></IconButton>}
             </Box>
-            <Typography variant="body2">
-              {renderContentWithTickers(post.content, post.id)}{' '}
-              {post.sentiment && (
-                <Typography component="span" sx={{ color: post.sentiment === 'bullish' ? 'green' : 'red', fontWeight: 600 }}>
-                  [{post.sentiment}]
-                </Typography>
-              )}
-            </Typography>
+            <Typography variant="body1">{renderContentWithTickers(post.content, post.id)}</Typography>
+            {post.sentiment && (
+              <Typography component="span" sx={{ color: post.sentiment === 'bullish' ? '#2E7D32' : '#D32F2F', fontWeight: 600, fontSize: '0.9rem' }}>
+                [{post.sentiment}]
+              </Typography>
+            )}
             {post.media && (
-              post.media.type === 'photo' ? <img src={post.media.url} alt="Post media" style={{ maxWidth: '100%' }} /> :
-              <video src={post.media.url} controls style={{ maxWidth: '100%' }} />
+              post.media.type === 'photo' ? <img src={post.media.url} alt="Post media" style={{ maxWidth: '100%', borderRadius: 8, mt: 1 }} /> :
+              <video src={post.media.url} controls style={{ maxWidth: '100%', borderRadius: 8, mt: 1 }} />
             )}
             {showChart[post.id] && (
               <Box sx={{ mt: 2 }}>
-                <div ref={(el) => (chartRefs.current[post.id] = el)} />
+                <Typography variant="body2" color="text.secondary">Chart for ${showChart[post.id]} (Disabled due to error)</Typography>
+                {/* <div ref={(el) => (chartRefs.current[post.id] = el)} /> */}
                 <Button onClick={() => setShowChart((prev) => ({ ...prev, [post.id]: null }))} sx={{ mt: 1 }}>Hide Chart</Button>
               </Box>
             )}
@@ -209,27 +222,27 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
                 ))}
               </Box>
             )}
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, mt: 1, color: 'text.secondary' }}>
               <IconButton onClick={() => handleLike(post.id)}><ThumbUp fontSize="small" /> {post.likes}</IconButton>
               <IconButton><Comment fontSize="small" /> {post.comments.length}</IconButton>
               <IconButton onClick={() => handleShare(post.id)}><Share fontSize="small" /> {post.shares}</IconButton>
-              <IconButton><EmojiEmotions fontSize="small" /></IconButton> {/* Placeholder for emoji picker */}
+              <IconButton><EmojiEmotions fontSize="small" /></IconButton>
             </Box>
             {post.comments.map((comment, cIndex) => (
-              <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2 }}>
+              <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2, color: 'text.secondary' }}>
                 {renderContentWithTickers(comment, post.id)}
               </Typography>
             ))}
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
               <TextField
                 size="small"
                 placeholder="Add a comment"
                 value={commentInputs[post.id] || ''}
                 onChange={(e) => setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))}
                 onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
-                sx={{ width: '70%' }}
+                sx={{ flexGrow: 1 }}
               />
-              <Button size="small" onClick={() => handleCommentSubmit(post.id)} sx={{ ml: 1 }}>Comment</Button>
+              <Button size="small" onClick={() => handleCommentSubmit(post.id)}>Comment</Button>
             </Box>
           </Card>
         </motion.div>
