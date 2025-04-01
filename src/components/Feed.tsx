@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Container, Typography, TextField, Card, Box, IconButton, Button, Link, Chip, Menu, MenuItem,
+  Container, Typography, TextField, Card, Box, IconButton, Button, Link, Chip, Menu, MenuItem, FormControl, InputLabel, Select,
 } from '@mui/material';
 import { ThumbUp, Comment, Share, Delete, EmojiEmotions } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { fetchPosts, addPost } from '../api/mockApi';
 import { fetchNews } from '../api/mockNews';
+import { applyTradingRules } from '../utils/tradingRules';
 
 interface Post {
   id: number;
@@ -16,9 +17,10 @@ interface Post {
   comments: string[];
   shares: number;
   sentiment?: 'bullish' | 'bearish';
-  media?: { type: 'photo' | 'video' | 'stock'; url: string };
+  media?: { type: 'photo' | 'video'; url: string };
   nft?: { name: string; image: string; details: { trait: string; value: string }[] };
   priceUpdate?: { symbol: string; price: number; change: number; type: 'stock' | 'crypto' };
+  tradeSettings?: { stopLoss: number; takeProfit: number; trailingStop: boolean };
 }
 
 const Feed: React.FC<{ username: string | null }> = ({ username }) => {
@@ -32,6 +34,11 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const [news, setNews] = useState<{ [key: number]: any[] }>({});
   const [shareAnchorEl, setShareAnchorEl] = useState<null | HTMLElement>(null);
   const [sharePostId, setSharePostId] = useState<number | null>(null);
+  const [stopLoss, setStopLoss] = useState<number>(0);
+  const [takeProfit, setTakeProfit] = useState<number>(0);
+  const [trailingStop, setTrailingStop] = useState<boolean>(false);
+  const [ruleWarnings, setRuleWarnings] = useState<string[]>([]);
+  const [watchlistPrices, setWatchlistPrices] = useState<{ [key: string]: { price: number; change: number } }>({});
   const chartRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -84,9 +91,31 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     return () => observerRef.current?.disconnect();
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWatchlistPrices((prev) => {
+        const updated: { [key: string]: { price: number; change: number } } = {};
+        watchlist.forEach((ticker) => {
+          const prevPrice = prev[ticker]?.price || 100;
+          const newPrice = prevPrice + (Math.random() * 2 - 1);
+          updated[ticker] = { price: newPrice, change: ((newPrice - prevPrice) / prevPrice) * 100 };
+        });
+        return updated;
+      });
+    }, 10000); // Update every 10 seconds
+    return () => clearInterval(interval);
+  }, [watchlist]);
+
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPost.trim()) return;
+
+    const warnings = applyTradingRules(newPost, { stopLoss, takeProfit, trailingStop });
+    if (warnings.length > 0) {
+      setRuleWarnings(warnings);
+      return;
+    }
+
     const sentiment = newPost.toLowerCase().includes('bull') ? 'bullish' : newPost.toLowerCase().includes('bear') ? 'bearish' : undefined;
     const media = fileInputRef.current?.files?.[0]
       ? { type: fileInputRef.current.files[0].type.startsWith('video') ? 'video' : 'photo', url: URL.createObjectURL(fileInputRef.current.files[0]) }
@@ -101,10 +130,20 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
       shares: 0,
       sentiment,
       media,
+      tradeSettings: { stopLoss, takeProfit, trailingStop },
     };
     await addPost(post);
     setPosts((prev) => [post, ...prev]);
     setNewPost('');
+    setStopLoss(0);
+    setTakeProfit(0);
+    setTrailingStop(false);
+    setRuleWarnings([]);
+
+    // Play sound alert
+    const audio = new Audio('/src/assets/alert.wav');
+    audio.play().catch((err) => console.log('Audio play failed:', err));
+
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -139,6 +178,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     setCommentInputs((prev) => ({ ...prev, [id]: '' }));
   };
   const addToWatchlist = (ticker: string) => setWatchlist((prev) => [...new Set([...prev, ticker])]);
+
 
   const renderContentWithTickers = (content: string, index: number) => {
     const tickerRegex = /\$([A-Z]{1,5})/g;
@@ -179,14 +219,29 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   return (
     <Container maxWidth="sm" sx={{ mt: 2 }}>
       <Box sx={{ mb: 2 }}>
-        <Typography variant="h6">Watchlist</Typography>
+        <Typography variant="h6" sx={{ fontSize: '1rem', color: '#E4E6EB' }}>Watchlist</Typography>
         {watchlist.length ? (
           watchlist.map((ticker) => (
             <Chip
               key={ticker}
-              label={`$${ticker}`}
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>${ticker}</span>
+                  {watchlistPrices[ticker] && (
+                    <>
+                      <span>${watchlistPrices[ticker].price.toFixed(2)}</span>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: watchlistPrices[ticker].change >= 0 ? '#2E7D32' : '#D32F2F' }}
+                      >
+                        {watchlistPrices[ticker].change.toFixed(2)}%
+                      </Typography>
+                    </>
+                  )}
+                </Box>
+              }
               onDelete={() => setWatchlist((prev) => prev.filter((t) => t !== ticker))}
-              sx={{ mr: 1, mb: 1, bgcolor: '#3A3B3C' }}
+              sx={{ mr: 1, mb: 1, bgcolor: 'transparent', color: '#E4E6EB', border: '1px solid rgba(255, 255, 255, 0.1)' }}
             />
           ))
         ) : (
@@ -195,7 +250,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
       </Box>
       <TextField
         fullWidth
-        label="Filter by ticker (e.g., $AAPL)"
+        placeholder="Filter by ticker (e.g., $AAPL)"
         value={filterTicker}
         onChange={(e) => setFilterTicker(e.target.value)}
         variant="outlined"
@@ -204,15 +259,53 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
       <form onSubmit={handlePostSubmit} style={{ marginBottom: '20px' }}>
         <TextField
           fullWidth
-          label="Share your trading thoughts (e.g., $AAPL bullish)"
+          placeholder="Share your trading thoughts (e.g., $AAPL bullish)"
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
           variant="outlined"
           sx={{ mb: 1 }}
         />
-        <input type="file" ref={fileInputRef} accept="image/*,video/*" style={{ marginBottom: 8 }} />
-        <Button type="submit" variant="contained" color="primary">Post</Button>
+        <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
+          <TextField
+            label="Stop Loss (%)"
+            type="number"
+            value={stopLoss}
+            onChange={(e) => setStopLoss(Number(e.target.value))}
+            size="small"
+            sx={{ width: 120 }}
+          />
+          <TextField
+            label="Take Profit (%)"
+            type="number"
+            value={takeProfit}
+            onChange={(e) => setTakeProfit(Number(e.target.value))}
+            size="small"
+            sx={{ width: 120 }}
+          />
+          <FormControl sx={{ width: 120 }}>
+            <InputLabel>Trailing Stop</InputLabel>
+            <Select
+              value={trailingStop ? 'Yes' : 'No'}
+              onChange={(e) => setTrailingStop(e.target.value === 'Yes')}
+              size="small"
+            >
+              <MenuItem value="Yes">Yes</MenuItem>
+              <MenuItem value="No">No</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <input type="file" ref={fileInputRef} accept="image/*,video/*" style={{ color: '#E4E6EB' }} />
+          <Button type="submit" variant="contained" color="primary">Post</Button>
+        </Box>
       </form>
+      {ruleWarnings.length > 0 && (
+        <Box sx={{ mt: 1, p: 1, bgcolor: 'rgba(255, 0, 0, 0.1)', borderRadius: 2 }}>
+          {ruleWarnings.map((warning, i) => (
+            <Typography key={i} variant="body2" color="error">{warning}</Typography>
+          ))}
+        </Box>
+      )}
       {filteredPosts.map((post) => (
         <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           <Card sx={{ mb: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -240,6 +333,13 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
                 [{post.sentiment}]
               </Typography>
             )}
+            {post.tradeSettings && (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Trade Settings: Stop Loss: {post.tradeSettings.stopLoss}%, Take Profit: {post.tradeSettings.takeProfit}%, Trailing Stop: {post.tradeSettings.trailingStop ? 'Yes' : 'No'}
+                </Typography>
+              </Box>
+            )}
             {post.media && (
               post.media.type === 'photo' ? <img src={post.media.url} alt="Post media" style={{ maxWidth: '100%', borderRadius: 8, mt: 1 }} /> :
               <video src={post.media.url} controls style={{ maxWidth: '100%', borderRadius: 8, mt: 1 }} />
@@ -251,7 +351,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
                   <Typography variant="body2" sx={{ mt: 1 }}>{post.nft.name}</Typography>
                 </Box>
                 {post.nft.details.map((detail, i) => (
-                  <Box key={i} sx={{ minWidth: 150, flexShrink: 0, bgcolor: '#3A3B3C', p: 1, borderRadius: 2 }}>
+                  <Box key={i} sx={{ minWidth: 150, flexShrink: 0, bgcolor: 'rgba(255, 255, 255, 0.05)', p: 1, borderRadius: 2 }}>
                     <Typography variant="body2">{detail.trait}: {detail.value}</Typography>
                   </Box>
                 ))}
@@ -265,10 +365,20 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
                     {post.priceUpdate.change.toFixed(2)}%
                   </Typography>
                 </Typography>
-                <Box sx={{ mt: 1, height: 100, bgcolor: '#3A3B3C', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Chart for {post.priceUpdate.type === 'crypto' ? '' : '$'}{post.priceUpdate.symbol} (Mock)
-                  </Typography>
+                <Box sx={{ mt: 1 }}>
+                  <FormControl sx={{ width: 120, mb: 1 }}>
+                    <InputLabel>Chart Type</InputLabel>
+                    <Select value="Candlestick" size="small">
+                      <MenuItem value="Candlestick">Candlestick</MenuItem>
+                      <MenuItem value="Heikin-Ashi">Heikin-Ashi</MenuItem>
+                      <MenuItem value="Renko">Renko</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Box sx={{ height: 100, bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Chart for {post.priceUpdate.type === 'crypto' ? '' : '$'}{post.priceUpdate.symbol} (Mock)
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
             )}

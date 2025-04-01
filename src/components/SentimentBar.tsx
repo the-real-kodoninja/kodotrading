@@ -1,43 +1,38 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Typography, LinearProgress } from '@mui/material';
-import { fetchPosts } from '../api/mockApi';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
 
 const SentimentBar: React.FC = () => {
-  const [sentiment, setSentiment] = useState<{ [ticker: string]: { bullish: number; bearish: number } }>({});
+  const [sentiments, setSentiments] = useState([
+    { ticker: 'AAPL', bullish: 1, bearish: 0, sentimentScore: 0.8 },
+    { ticker: 'TSLA', bullish: 0, bearish: 1, sentimentScore: -0.5 },
+  ]);
 
   useEffect(() => {
-    fetchPosts(0, 100).then((posts) => {
-      const tickerSentiment: { [ticker: string]: { bullish: number; bearish: number } } = {};
-      posts.forEach((post) => {
-        const tickers = (post.content.match(/\$([A-Z]{1,5})/g) || []).map((t) => t.slice(1));
-        tickers.forEach((ticker) => {
-          if (!tickerSentiment[ticker]) tickerSentiment[ticker] = { bullish: 0, bearish: 0 };
-          if (post.sentiment === 'bullish') tickerSentiment[ticker].bullish += 1;
-          if (post.sentiment === 'bearish') tickerSentiment[ticker].bearish += 1;
-        });
-      });
-      setSentiment(tickerSentiment);
-    });
+    const interval = setInterval(() => {
+      setSentiments((prev) =>
+        prev.map((item) => ({
+          ...item,
+          sentimentScore: Math.random() * 2 - 1, // Mock NLP sentiment score (-1 to 1)
+        }))
+      );
+    }, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <Box sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: 'background.paper' }}>
-      <Typography variant="h6">Ticker Sentiment</Typography>
-      {Object.entries(sentiment).map(([ticker, { bullish, bearish }]) => {
-        const total = bullish + bearish;
-        if (total === 0) return null;
-        const bullPercent = (bullish / total) * 100;
-        return (
-          <Box key={ticker} sx={{ mt: 1 }}>
-            <Typography variant="body2">${ticker}: {bullish} Bullish / {bearish} Bearish</Typography>
-            <LinearProgress
-              variant="determinate"
-              value={bullPercent}
-              sx={{ height: 8, borderRadius: 4, bgcolor: '#D32F2F', '& .MuiLinearProgress-bar': { bgcolor: '#2E7D32' } }}
-            />
-          </Box>
-        );
-      })}
+    <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 2, mb: 2 }}>
+      <Typography variant="h6" sx={{ fontSize: '1rem' }}>Ticker Sentiment</Typography>
+      {sentiments.map((item) => (
+        <Box key={item.ticker} sx={{ mb: 1 }}>
+          <Typography variant="body2">
+            ${item.ticker}: {item.bullish} Bullish / {item.bearish} Bearish
+            <Typography component="span" sx={{ ml: 1, color: item.sentimentScore >= 0 ? '#2E7D32' : '#D32F2F' }}>
+              Sentiment Score: {item.sentimentScore.toFixed(2)}
+            </Typography>
+          </Typography>
+          <Box sx={{ height: 5, bgcolor: item.sentimentScore >= 0 ? '#2E7D32' : '#D32F2F', borderRadius: 2 }} />
+        </Box>
+      ))}
     </Box>
   );
 };

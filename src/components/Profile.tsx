@@ -1,83 +1,127 @@
-import React, { useState } from 'react';
-import { Grid, Paper, Typography, Container, Button, TextField } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, Box, Button, Avatar, Grid, Card, CardContent, CardMedia } from '@mui/material';
+import { motion } from 'framer-motion';
+import { fetchPosts } from '../api/mockApi';
 
 interface ProfileProps {
-  trades?: number;
-  followers?: number;
-  bio?: string;
+  trades: number;
+  followers: number;
+  bio: string;
 }
 
-const Profile: React.FC<ProfileProps> = ({ trades: initialTrades = 150, followers: initialFollowers = 320, bio: initialBio = 'Passionate trader.' }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [trades, setTrades] = useState(initialTrades);
-  const [followers, setFollowers] = useState(initialFollowers);
-  const [bio, setBio] = useState(initialBio);
+interface Post {
+  id: number;
+  content: string;
+  time: string;
+}
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Later: Save to backend
-  };
+interface NFT {
+  name: string;
+  image: string;
+}
+
+const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [recentPosts, setRecentPosts] = useState<Post[]>([]);
+  const [nfts, setNfts] = useState<NFT[]>([]);
+
+  useEffect(() => {
+    fetchPosts(0, 3).then((posts) => setRecentPosts(posts));
+    const mockNfts: NFT[] = [
+      { name: 'CryptoPunk #123', image: 'https://via.placeholder.com/150' },
+      { name: 'Bored Ape #456', image: 'https://via.placeholder.com/150' },
+    ];
+    setNfts(mockNfts);
+  }, []);
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 2, mb: 2 }}>
-      <Paper elevation={3} sx={{ p: 2 }}>
-        {isEditing ? (
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <TextField
-                label="Trades"
-                type="number"
-                value={trades}
-                onChange={(e) => setTrades(Number(e.target.value))}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Followers"
-                type="number"
-                value={followers}
-                onChange={(e) => setFollowers(Number(e.target.value))}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                fullWidth
-                multiline
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Button onClick={handleSave} variant="contained" color="primary">
-                Save
-              </Button>
-              <Button onClick={() => setIsEditing(false)} sx={{ ml: 1 }}>
-                Cancel
-              </Button>
-            </Grid>
-          </Grid>
-        ) : (
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <Typography>Trades: {trades}</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography>Followers: {followers}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography>Bio: {bio}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Button onClick={() => setIsEditing(true)} variant="outlined">
-                Edit Profile
-              </Button>
-            </Grid>
-          </Grid>
-        )}
-      </Paper>
+    <Container maxWidth="md" sx={{ mt: 2 }}>
+      {/* Cover Photo */}
+      <Box
+        sx={{
+          height: 200,
+          background: 'linear-gradient(135deg, #8B0000 0%, #3A3B3C 100%)',
+          borderRadius: 2,
+          position: 'relative',
+          mb: 4,
+        }}
+      >
+        <Avatar
+          src="https://ui-avatars.com/api/?name=TraderX&background=8B0000&color=FFFFFF"
+          sx={{
+            width: 120,
+            height: 120,
+            position: 'absolute',
+            bottom: -60,
+            left: 20,
+            border: '4px solid #242526',
+          }}
+        />
+      </Box>
+
+      {/* User Info */}
+      <Box sx={{ ml: 20, mb: 4 }}>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>TraderX</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{bio}</Typography>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Typography variant="body2">Trades: {trades}</Typography>
+          <Typography variant="body2">Followers: {followers}</Typography>
+        </Box>
+        <Button
+          variant={isFollowing ? 'outlined' : 'contained'}
+          color="primary"
+          onClick={() => setIsFollowing(!isFollowing)}
+          sx={{ mt: 2 }}
+        >
+          {isFollowing ? 'Unfollow' : 'Follow'}
+        </Button>
+      </Box>
+
+      {/* Stats and Activity */}
+      <Grid container spacing={2}>
+        {/* Recent Posts */}
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6" sx={{ fontSize: '1rem', mb: 2 }}>Recent Posts</Typography>
+          {recentPosts.length ? (
+            recentPosts.map((post) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card sx={{ mb: 2, p: 2, bgcolor: 'rgba(255, 255, 255, 0.05)' }}>
+                  <CardContent>
+                    <Typography variant="body2">{post.content}</Typography>
+                    <Typography variant="caption" color="text.secondary">{post.time}</Typography>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Typography variant="body2" color="text.secondary">No recent posts.</Typography>
+          )}
+        </Grid>
+
+        {/* NFTs Owned */}
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6" sx={{ fontSize: '1rem', mb: 2 }}>NFTs Owned</Typography>
+          <Box sx={{ display: 'flex', overflowX: 'auto', gap: 2, pb: 1 }}>
+            {nfts.map((nft, i) => (
+              <Box key={i} sx={{ minWidth: 150, flexShrink: 0 }}>
+                <CardMedia
+                  component="img"
+                  height="150"
+                  image={nft.image}
+                  alt={nft.name}
+                  sx={{ borderRadius: 2 }}
+                />
+                <Typography variant="body2" sx={{ mt: 1 }}>{nft.name}</Typography>
+              </Box>
+            ))}
+          </Box>
+        </Grid>
+      </Grid>
     </Container>
   );
 };

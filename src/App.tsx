@@ -8,7 +8,7 @@ import Profile from './components/Profile';
 import NewsTab from './components/NewsTab';
 import SentimentBar from './components/SentimentBar';
 import StockScreener from './components/StockScreener';
-import NimbusAI from './components/NimbusAI';
+import NimbusAI from './ Wcomponents/NimbusAI';
 import StopLoss from './components/StopLoss';
 import LiveChat from './components/LiveChat';
 import LiveVideo from './components/LiveVideo';
@@ -19,7 +19,7 @@ import StockPrices from './components/StockPrices';
 import ActivityFeed from './components/ActivityFeed';
 import WalletConnect from './components/WalletConnect';
 import NFTMarketplace from './components/NFTMarketplace';
-import { Feed as FeedIcon, Activity as ActivityIcon, AccountBalanceWallet, Store } from '@mui/icons-material';
+import { Feed as FeedIcon, Timeline as ActivityIcon, AccountBalanceWallet, Store, BarChart, Assessment } from '@mui/icons-material';
 import './App.css';
 
 const App: React.FC = () => {
@@ -53,6 +53,12 @@ const App: React.FC = () => {
           </Link>
           <Link to="/activity" title="Activity">
             <ActivityIcon />
+          </Link>
+          <Link to="/screener" title="Stock Screener">
+            <BarChart />
+          </Link>
+          <Link to="/portfolio" title="Portfolio Analytics">
+            <Assessment />
           </Link>
           <Link to="/wallet" title="Wallet">
             <AccountBalanceWallet />

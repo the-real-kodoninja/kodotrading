@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  AppBar, Toolbar as MuiToolbar, Typography, TextField, Box, List, ListItem, ListItemText, Button,
+  AppBar, Toolbar as MuiToolbar, Typography, TextField, Box, List, ListItem, ListItemText, Button, Select, MenuItem,
 } from '@mui/material';
 
 interface ToolbarProps {
@@ -15,6 +15,7 @@ interface ToolbarProps {
 const Toolbar: React.FC<ToolbarProps> = ({ isAuthenticated, username, onLogin, onLogout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ type: 'ticker' | 'user'; value: string }[]>([]);
+  const [selectedBroker, setSelectedBroker] = useState('Alpaca');
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -62,7 +63,18 @@ const Toolbar: React.FC<ToolbarProps> = ({ isAuthenticated, username, onLogin, o
             </Box>
           )}
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Select
+            value={selectedBroker}
+            onChange={(e) => setSelectedBroker(e.target.value)}
+            size="small"
+            sx={{ color: '#E4E6EB', bgcolor: '#3A3B3C', borderRadius: 20 }}
+          >
+            <MenuItem value="Alpaca">Alpaca</MenuItem>
+            <MenuItem value="Binance">Binance</MenuItem>
+            <MenuItem value="TradeZero">TradeZero</MenuItem>
+            <MenuItem value="IB">Interactive Brokers</MenuItem>
+          </Select>
           {isAuthenticated ? (
             <>
               <Typography sx={{ mr: 2 }}>Welcome, {username}</Typography>

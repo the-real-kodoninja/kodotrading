@@ -12,7 +12,7 @@ main {
 
 /* Sidebar */
 .sidebar {
-  width: 60px;
+  width: 50px;
   background: transparent;
   display: flex;
   flex-direction: column;
@@ -24,24 +24,41 @@ main {
 }
 
 .sidebar a {
-  margin: 15px 0;
-  color: inherit;
+  margin: 10px 0;
+  color: #E4E6EB;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  transition: background 0.2s ease;
+  transition: transform 0.3s ease, background 0.2s ease;
 }
 
 .sidebar a:hover {
+  transform: scale(1.1);
   background: rgba(255, 255, 255, 0.1);
 }
 
 /* Content area */
 .content {
-  margin-left: 60px;
+  margin-left: 50px;
   flex-grow: 1;
-  padding: 20px;
+  padding: 15px;
+}
+
+/* Minimal form and card styles */
+form, .MuiCard-root {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.MuiTextField-root {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.MuiTextField-root .MuiOutlinedInput-notchedOutline {
+  border: none;
 }

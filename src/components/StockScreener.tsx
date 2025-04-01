@@ -1,50 +1,95 @@
 import React, { useState } from 'react';
-import { Container, Typography, TextField, Button, Box, List, ListItem } from '@mui/material';
+import { Container, Typography, TextField, Box, List, ListItem, ListItemText, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
-// Mock Motoko-like decentralized screener
-const mockScreenStocks = (criteria: { minPrice: number; maxVolatility: number }) => {
-  const stocks = [
-    { ticker: 'AAPL', price: 178, volatility: 0.02 },
-    { ticker: 'TSLA', price: 415, volatility: 0.05 },
-    { ticker: 'GOOG', price: 2820, volatility: 0.01 },
-  ];
-  return stocks.filter((s) => s.price >= criteria.minPrice && s.volatility <= criteria.maxVolatility);
-};
+interface Stock {
+  ticker: string;
+  price: number;
+  volume: number;
+  volatility: number;
+  pattern?: string;
+}
 
 const StockScreener: React.FC = () => {
-  const [minPrice, setMinPrice] = useState('');
-  const [maxVolatility, setMaxVolatility] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [minPrice, setMinPrice] = useState<number>(0);
+  const [maxPrice, setMaxPrice] = useState<number>(1000);
+  const [minVolume, setMinVolume] = useState<number>(0);
+  const [minVolatility, setMinVolatility] = useState<number>(0);
+  const [tradingStyle, setTradingStyle] = useState<string>('all');
+  const [stocks] = useState<Stock[]>([
+    { ticker: 'AAPL', price: 178, volume: 1000000, volatility: 3 },
+    { ticker: 'TSLA', price: 415, volume: 2000000, volatility: 5 },
+    { ticker: 'PENY', price: 0.5, volume: 600000, volatility: 6, pattern: 'Breakout' },
+  ]);
 
-  const handleScreen = () => {
-    const criteria = { minPrice: Number(minPrice) || 0, maxVolatility: Number(maxVolatility) || 1 };
-    const screened = mockScreenStocks(criteria);
-    setResults(screened);
-  };
+  const filteredStocks = stocks.filter((stock) => {
+    const priceMatch = stock.price >= minPrice && stock.price <= maxPrice;
+    const volumeMatch = stock.volume >= minVolume;
+    const volatilityMatch = stock.volatility >= minVolatility;
+    const styleMatch =
+      tradingStyle === 'all' ||
+      (tradingStyle === 'penny' && stock.price <= 5) ||
+      (tradingStyle === 'swing' && stock.volatility < 5) ||
+      (tradingStyle === 'day' && stock.volatility >= 5);
+    return priceMatch && volumeMatch && volatilityMatch && styleMatch;
+  });
 
   return (
     <Container maxWidth="sm" sx={{ mt: 2 }}>
-      <Typography variant="h6">Decentralized Stock Screener (Motoko Simulation)</Typography>
-      <Box sx={{ mt: 2 }}>
+      <Typography variant="h6" sx={{ fontSize: '1rem' }}>Stock Screener</Typography>
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         <TextField
           label="Min Price"
-          value={minPrice}
-          onChange={(e) => setMinPrice(e.target.value)}
           type="number"
-          sx={{ mr: 2 }}
+          value={minPrice}
+          onChange={(e) => setMinPrice(Number(e.target.value))}
+          size="small"
+          sx={{ width: 120 }}
         />
         <TextField
-          label="Max Volatility"
-          value={maxVolatility}
-          onChange={(e) => setMaxVolatility(e.target.value)}
+          label="Max Price"
           type="number"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          size="small"
+          sx={{ width: 120 }}
         />
-        <Button onClick={handleScreen} variant="contained" sx={{ mt: 1 }}>Screen Stocks</Button>
+        <TextField
+          label="Min Volume"
+          type="number"
+          value={minVolume}
+          onChange={(e) => setMinVolume(Number(e.target.value))}
+          size="small"
+          sx={{ width: 120 }}
+        />
+        <TextField
+          label="Min Volatility (%)"
+          type="number"
+          value={minVolatility}
+          onChange={(e) => setMinVolatility(Number(e.target.value))}
+          size="small"
+          sx={{ width: 120 }}
+        />
+        <FormControl sx={{ width: 120 }}>
+          <InputLabel>Trading Style</InputLabel>
+          <Select
+            value={tradingStyle}
+            onChange={(e) => setTradingStyle(e.target.value)}
+            size="small"
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="penny">Penny Stocks</MenuItem>
+            <MenuItem value="swing">Swing</MenuItem>
+            <MenuItem value="day">Day Trading</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
-      <List>
-        {results.map((stock) => (
+      <List sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+        {filteredStocks.map((stock) => (
           <ListItem key={stock.ticker}>
-            ${stock.ticker} - Price: ${stock.price}, Volatility: {stock.volatility}
+            <ListItemText
+              primary={`$${stock.ticker}: $${stock.price}`}
+              secondary={`Volume: ${stock.volume}, Volatility: ${stock.volatility}%${stock.pattern ? `, Pattern: ${stock.pattern}` : ''}`}
+            />
           </ListItem>
         ))}
       </List>
