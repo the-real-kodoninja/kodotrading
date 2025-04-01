@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Container, Typography, TextField, Card, Box, IconButton, Button, Link, Chip,
+  Container, Typography, TextField, Card, Box, IconButton, Button, Link, Chip, Menu, MenuItem,
 } from '@mui/material';
 import { ThumbUp, Comment, Share, Delete, EmojiEmotions } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -28,6 +28,8 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
   const [showChart, setShowChart] = useState<{ [key: number]: string | null }>({});
   const [news, setNews] = useState<{ [key: number]: any[] }>({});
+  const [shareAnchorEl, setShareAnchorEl] = useState<null | HTMLElement>(null);
+  const [sharePostId, setSharePostId] = useState<number | null>(null);
   const chartRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -50,30 +52,6 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
     return () => observerRef.current?.disconnect();
   }, []);
-
-  // Comment out TradingView to avoid EPIPE for now
-  /*
-  useEffect(() => {
-    Object.entries(showChart).forEach(([index, ticker]) => {
-      if (ticker && chartRefs.current[Number(index)] && window.TradingView) {
-        const chart = window.TradingView.createChart(chartRefs.current[Number(index)]!, {
-          width: 300,
-          height: 200,
-          layout: { background: { type: 'solid', color: '#353839' }, textColor: '#FFFFFF' },
-          grid: { vertLines: { color: '#424242' }, horzLines: { color: '#424242' } },
-        });
-        chart.addLineSeries({ color: '#8B0000' }).setData(
-          mockChartData(ticker).time.map((t, i) => ({ time: t, value: mockChartData(ticker).value[i] }))
-        );
-      }
-    });
-  }, [showChart]);
-
-  const mockChartData = (ticker: string) => ({
-    time: [1711929600, 1712016000, 1712102400],
-    value: ticker === 'AAPL' ? [175, 178, 176] : ticker === 'TSLA' ? [420, 415, 430] : [2800, 2820, 2790],
-  });
-  */
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +78,28 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   };
 
   const handleLike = (id: number) => setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, likes: p.likes + 1 } : p)));
-  const handleShare = (id: number) => setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, shares: p.shares + 1 } : p)));
+  const handleShare = (id: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    setSharePostId(id);
+    setShareAnchorEl(event.currentTarget);
+  };
+  const handleShareClose = () => {
+    setShareAnchorEl(null);
+    setSharePostId(null);
+  };
+  const handleShareAction = (platform: 'twitter' | 'email') => {
+    const post = posts.find((p) => p.id === sharePostId);
+    if (!post) return;
+    const shareText = `${post.user}: ${post.content} via KodoTrading`;
+    let shareUrl = '';
+    if (platform === 'twitter') {
+      shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    } else if (platform === 'email') {
+      shareUrl = `mailto:?subject=Check out this post on KodoTrading&body=${encodeURIComponent(shareText)}`;
+    }
+    window.open(shareUrl, '_blank');
+    setPosts((prev) => prev.map((p) => (p.id === sharePostId ? { ...p, shares: p.shares + 1 } : p)));
+    handleShareClose();
+  };
   const handleDelete = (id: number) => setPosts((prev) => prev.filter((p) => p.id !== id));
   const handleCommentSubmit = (id: number) => {
     const comment = commentInputs[id]?.trim();
@@ -109,6 +108,20 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     setCommentInputs((prev) => ({ ...prev, [id]: '' }));
   };
   const addToWatchlist = (ticker: string) => setWatchlist((prev) => [...new Set([...prev, ticker])]);
+
+  const renderContentWithTags = (content: string) => {
+    const tagRegex = /@([A-Za-z0-9_]+)/g;
+    const parts = content.split(tagRegex);
+    return parts.map((part, i) =>
+      tagRegex.test(`@${part}`) ? (
+        <Link key={i} href={`/profile/${part}`} sx={{ color: 'primary.main', cursor: 'pointer' }}>
+          @{part}
+        </Link>
+      ) : (
+        part
+      )
+    );
+  };
 
   const renderContentWithTickers = (content: string, index: number) => {
     const tickerRegex = /\$([A-Z]{1,5})/g;
@@ -130,7 +143,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
           ${part}
         </Link>
       ) : (
-        part
+        renderContentWithTags(part)
       )
     );
   };
@@ -208,7 +221,6 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
             {showChart[post.id] && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="body2" color="text.secondary">Chart for ${showChart[post.id]} (Disabled due to error)</Typography>
-                {/* <div ref={(el) => (chartRefs.current[post.id] = el)} /> */}
                 <Button onClick={() => setShowChart((prev) => ({ ...prev, [post.id]: null }))} sx={{ mt: 1 }}>Hide Chart</Button>
               </Box>
             )}
@@ -225,9 +237,13 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
             <Box sx={{ display: 'flex', gap: 1, mt: 1, color: 'text.secondary' }}>
               <IconButton onClick={() => handleLike(post.id)}><ThumbUp fontSize="small" /> {post.likes}</IconButton>
               <IconButton><Comment fontSize="small" /> {post.comments.length}</IconButton>
-              <IconButton onClick={() => handleShare(post.id)}><Share fontSize="small" /> {post.shares}</IconButton>
+              <IconButton onClick={(e) => handleShare(post.id, e)}><Share fontSize="small" /> {post.shares}</IconButton>
               <IconButton><EmojiEmotions fontSize="small" /></IconButton>
             </Box>
+            <Menu anchorEl={shareAnchorEl} open={Boolean(shareAnchorEl)} onClose={handleShareClose}>
+              <MenuItem onClick={() => handleShareAction('twitter')}>Share to Twitter</MenuItem>
+              <MenuItem onClick={() => handleShareAction('email')}>Share via Email</MenuItem>
+            </Menu>
             {post.comments.map((comment, cIndex) => (
               <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2, color: 'text.secondary' }}>
                 {renderContentWithTickers(comment, post.id)}

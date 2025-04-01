@@ -15,6 +15,8 @@ import LiveVideo from './components/LiveVideo';
 import PortfolioTracker from './components/PortfolioTracker';
 import Notifications from './components/Notifications';
 import Analytics from './components/Analytics';
+import StockPrices from './components/StockPrices';
+import ActivityFeed from './components/ActivityFeed';
 import './App.css';
 
 const App: React.FC = () => {
@@ -55,6 +57,8 @@ const App: React.FC = () => {
         <Link to="/portfolio" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Portfolio</Link>
         <Link to="/notifications" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Notifications</Link>
         <Link to="/analytics" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Analytics</Link>
+        <Link to="/prices" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Stock Prices</Link>
+        <Link to="/activity" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Activity</Link>
       </nav>
       <SentimentBar />
       <main>
@@ -70,6 +74,8 @@ const App: React.FC = () => {
           <Route path="/portfolio" element={<PortfolioTracker />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/prices" element={<StockPrices />} />
+          <Route path="/activity" element={<ActivityFeed />} />
         </Routes>
       </main>
     </ThemeProvider>
