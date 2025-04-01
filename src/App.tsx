@@ -5,6 +5,7 @@ import { lightTheme, darkTheme } from './theme';
 import Toolbar from './components/Toolbar';
 import Feed from './components/Feed';
 import Profile from './components/Profile';
+import './App.css';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);

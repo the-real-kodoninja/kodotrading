@@ -14,7 +14,7 @@ interface ToolbarProps {
 
 const Toolbar: React.FC<ToolbarProps> = ({ isDarkMode, toggleTheme, isAuthenticated, username, onLogin, onLogout }) => (
   <AppBar position="static">
-    <MuiToolbar>
+    <MuiToolbar sx={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
       <Typography variant="h6" sx={{ flexGrow: 1 }}>
         KodoTrading
       </Typography>

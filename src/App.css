@@ -1,42 +1,43 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+nav {
+  padding: 10px;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+a {
+  text-decoration: none;
+  font-weight: 500;
+  margin: 0 15px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+a:hover {
+  text-decoration: underline;
+}
+
+main {
+  min-height: calc(100vh - 64px - 40px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 10px;
+}
+
+@media (max-width: 600px) {
+  nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
-  to {
-    transform: rotate(360deg);
+
+  a {
+    margin: 5px 0;
   }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  .MuiToolbar-root {
+    flex-wrap: wrap;
+    padding: 8px;
   }
-}
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  .MuiTypography-h6 {
+    font-size: 1.1rem;
+  }
 }
