@@ -17,6 +17,8 @@ interface Post {
   shares: number;
   sentiment?: 'bullish' | 'bearish';
   media?: { type: 'photo' | 'video' | 'stock'; url: string };
+  nft?: { name: string; image: string; details: { trait: string; value: string }[] };
+  priceUpdate?: { symbol: string; price: number; change: number; type: 'stock' | 'crypto' };
 }
 
 const Feed: React.FC<{ username: string | null }> = ({ username }) => {
@@ -36,12 +38,41 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchPosts(page, 5).then((fetchedPosts) =>
-      setPosts((prev) => [
-        ...prev,
-        ...fetchedPosts.map((p, i) => ({ ...p, id: prev.length + i, shares: 0 })),
-      ])
-    );
+    const mockPosts: Post[] = [
+      ...fetchPosts(page, 5),
+      {
+        id: 100,
+        user: 'NFTCollector',
+        time: '1h ago',
+        content: 'Just minted this awesome NFT!',
+        likes: 5,
+        comments: [],
+        shares: 0,
+        nft: {
+          name: 'CryptoPunk #123',
+          image: 'https://via.placeholder.com/150',
+          details: [
+            { trait: 'Hat', value: 'Beanie' },
+            { trait: 'Eyes', value: 'Sunglasses' },
+            { trait: 'Rarity', value: 'Rare' },
+          ],
+        },
+      },
+      {
+        id: 101,
+        user: 'MarketBot',
+        time: '30m ago',
+        content: '',
+        likes: 0,
+        comments: [],
+        shares: 0,
+        priceUpdate: { symbol: 'BTC', price: 60000, change: 1.5, type: 'crypto' },
+      },
+    ];
+    setPosts((prev) => [
+      ...prev,
+      ...mockPosts.map((p, i) => ({ ...p, id: prev.length + i, shares: p.shares || 0 })),
+    ]);
   }, [page]);
 
   useEffect(() => {
@@ -109,22 +140,9 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   };
   const addToWatchlist = (ticker: string) => setWatchlist((prev) => [...new Set([...prev, ticker])]);
 
-  const renderContentWithTags = (content: string) => {
-    const tagRegex = /@([A-Za-z0-9_]+)/g;
-    const parts = content.split(tagRegex);
-    return parts.map((part, i) =>
-      tagRegex.test(`@${part}`) ? (
-        <Link key={i} href={`/profile/${part}`} sx={{ color: 'primary.main', cursor: 'pointer' }}>
-          @{part}
-        </Link>
-      ) : (
-        part
-      )
-    );
-  };
-
   const renderContentWithTickers = (content: string, index: number) => {
     const tickerRegex = /\$([A-Z]{1,5})/g;
+    const tagRegex = /@([A-Za-z0-9_]+)/g;
     const parts = content.split(tickerRegex);
     return parts.map((part, i) =>
       tickerRegex.test(`$${part}`) ? (
@@ -143,7 +161,15 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
           ${part}
         </Link>
       ) : (
-        renderContentWithTags(part)
+        part.split(tagRegex).map((subPart, j) =>
+          tagRegex.test(`@${subPart}`) ? (
+            <Link key={`${i}-${j}`} href={`/profile/${subPart}`} sx={{ color: 'primary.main', cursor: 'pointer' }}>
+              @{subPart}
+            </Link>
+          ) : (
+            subPart
+          )
+        )
       )
     );
   };
@@ -160,7 +186,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
               key={ticker}
               label={`$${ticker}`}
               onDelete={() => setWatchlist((prev) => prev.filter((t) => t !== ticker))}
-              sx={{ mr: 1, mb: 1, bgcolor: isDarkMode ? '#3A3B3C' : '#E4E6EB' }}
+              sx={{ mr: 1, mb: 1, bgcolor: '#3A3B3C' }}
             />
           ))
         ) : (
@@ -208,7 +234,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
               </Box>
               {post.user === username && <IconButton onClick={() => handleDelete(post.id)}><Delete fontSize="small" /></IconButton>}
             </Box>
-            <Typography variant="body1">{renderContentWithTickers(post.content, post.id)}</Typography>
+            {post.content && <Typography variant="body1">{renderContentWithTickers(post.content, post.id)}</Typography>}
             {post.sentiment && (
               <Typography component="span" sx={{ color: post.sentiment === 'bullish' ? '#2E7D32' : '#D32F2F', fontWeight: 600, fontSize: '0.9rem' }}>
                 [{post.sentiment}]
@@ -217,6 +243,34 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
             {post.media && (
               post.media.type === 'photo' ? <img src={post.media.url} alt="Post media" style={{ maxWidth: '100%', borderRadius: 8, mt: 1 }} /> :
               <video src={post.media.url} controls style={{ maxWidth: '100%', borderRadius: 8, mt: 1 }} />
+            )}
+            {post.nft && (
+              <Box sx={{ mt: 2, display: 'flex', overflowX: 'auto', gap: 2, pb: 1 }}>
+                <Box sx={{ minWidth: 150, flexShrink: 0 }}>
+                  <img src={post.nft.image} alt={post.nft.name} style={{ width: '100%', borderRadius: 8 }} />
+                  <Typography variant="body2" sx={{ mt: 1 }}>{post.nft.name}</Typography>
+                </Box>
+                {post.nft.details.map((detail, i) => (
+                  <Box key={i} sx={{ minWidth: 150, flexShrink: 0, bgcolor: '#3A3B3C', p: 1, borderRadius: 2 }}>
+                    <Typography variant="body2">{detail.trait}: {detail.value}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+            {post.priceUpdate && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  {post.priceUpdate.type === 'crypto' ? '' : '$'}{post.priceUpdate.symbol}: ${post.priceUpdate.price.toFixed(2)}
+                  <Typography component="span" sx={{ ml: 1, color: post.priceUpdate.change >= 0 ? '#2E7D32' : '#D32F2F' }}>
+                    {post.priceUpdate.change.toFixed(2)}%
+                  </Typography>
+                </Typography>
+                <Box sx={{ mt: 1, height: 100, bgcolor: '#3A3B3C', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Chart for {post.priceUpdate.type === 'crypto' ? '' : '$'}{post.priceUpdate.symbol} (Mock)
+                  </Typography>
+                </Box>
+              </Box>
             )}
             {showChart[post.id] && (
               <Box sx={{ mt: 2 }}>

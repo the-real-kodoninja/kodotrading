@@ -4,75 +4,44 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
-nav {
-  padding: 10px;
-  text-align: center;
-  background: #8B0000;
-  color: #FFFFFF;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-a {
-  text-decoration: none;
-  font-weight: 500;
-  margin: 0 15px;
-  color: inherit;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
 main {
-  min-height: calc(100vh - 64px - 40px);
+  min-height: calc(100vh - 64px);
+  display: flex;
+  padding: 0;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 60px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  position: fixed;
+  height: 100vh;
+  z-index: 1000;
+}
+
+.sidebar a {
+  margin: 15px 0;
+  color: inherit;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 0 10px;
-  background: #F0F2F5; /* Light mode - softer gray */
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background 0.2s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  main {
-    background: #18191A; /* Dark mode - softer dark */
-  }
+.sidebar a:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* Card styling for fluid look */
-.MuiCard-root {
-  border: none;
-  border-radius: 12px;
-  background: #FFFFFF;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  .MuiCard-root {
-    background: #242526;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  }
-}
-
-/* Input fields */
-.MuiTextField-root {
-  background: #FFFFFF;
-  border-radius: 8px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .MuiTextField-root {
-    background: #3A3B3C;
-  }
-}
-
-/* Buttons */
-.MuiButton-containedPrimary {
-  background: #8B0000;
-  border-radius: 20px;
-  text-transform: none;
-  font-weight: 600;
-}
-
-.MuiButton-containedPrimary:hover {
-  background: #6B0000;
+/* Content area */
+.content {
+  margin-left: 60px;
+  flex-grow: 1;
+  padding: 20px;
 }

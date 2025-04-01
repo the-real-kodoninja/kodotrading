@@ -5,7 +5,10 @@ export const lightTheme = createTheme({
     mode: 'light',
     primary: { main: '#8B0000' },
     secondary: { main: '#3A3B3C' },
-    background: { default: '#F0F2F5', paper: '#FFFFFF' },
+    background: {
+      default: 'linear-gradient(135deg, #F0F2F5 0%, #E8ECEF 100%)', // Subtle gradient
+      paper: '#FFFFFF',
+    },
     text: { primary: '#1C2526', secondary: '#65676B' },
   },
   typography: {
@@ -15,7 +18,13 @@ export const lightTheme = createTheme({
   },
   components: {
     MuiCard: {
-      styleOverrides: { root: { borderRadius: 12, boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' } },
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%)', // Subtle card gradient
+        },
+      },
     },
     MuiButton: {
       styleOverrides: { root: { textTransform: 'none', borderRadius: 20 } },
@@ -28,7 +37,10 @@ export const darkTheme = createTheme({
     mode: 'dark',
     primary: { main: '#8B0000' },
     secondary: { main: '#E4E6EB' },
-    background: { default: '#18191A', paper: '#242526' },
+    background: {
+      default: 'linear-gradient(135deg, #18191A 0%, #242526 100%)', // Subtle dark gradient
+      paper: '#2D2E2F',
+    },
     text: { primary: '#E4E6EB', secondary: '#B0B3B8' },
   },
   typography: {
@@ -38,7 +50,13 @@ export const darkTheme = createTheme({
   },
   components: {
     MuiCard: {
-      styleOverrides: { root: { borderRadius: 12, boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)' } },
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+          background: 'linear-gradient(135deg, #2D2E2F 0%, #353839 100%)', // Subtle dark card gradient
+        },
+      },
     },
     MuiButton: {
       styleOverrides: { root: { textTransform: 'none', borderRadius: 20 } },
