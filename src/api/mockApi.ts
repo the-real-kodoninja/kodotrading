@@ -4,26 +4,19 @@ interface Post {
   content: string;
   likes: number;
   comments: string[];
+  sentiment?: 'bullish' | 'bearish';
 }
 
 let posts: Post[] = [
-  { user: 'TraderX', time: '2h ago', content: 'Bullish on $AAPL after earnings!', likes: 0, comments: [] },
-  { user: 'StockGuru', time: '5h ago', content: '$TSLA dropping—oversold?', likes: 0, comments: [] },
-  { user: 'MarketMogul', time: '1d ago', content: '$GOOG breaking out!', likes: 0, comments: [] },
+  { user: 'TraderX', time: '2h ago', content: 'Bullish on $AAPL after earnings!', likes: 0, comments: [], sentiment: 'bullish' },
+  { user: 'StockGuru', time: '5h ago', content: '$TSLA dropping—oversold?', likes: 0, comments: [], sentiment: 'bearish' },
 ];
 
-export const fetchPosts = async (page: number, limit: number): Promise<Post[]> => {
-  const start = page * limit;
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(posts.slice(0, start + limit)), 500);
-  });
-};
-
-export const addPost = async (post: Post): Promise<void> => {
+// Simulate fetching posts with a delay
+export const fetchPosts = async (start: number, limit: number): Promise<Post[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      posts = [post, ...posts];
-      resolve();
-    }, 500);
+      resolve(posts.slice(start, start + limit));
+    }, 1000); // Simulate 1-second delay
   });
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Card, CardContent, Typography, Container, TextField, Button, IconButton, Box, Link,
+  Container, Typography, TextField, Card, Box, IconButton, Button, Link,
 } from '@mui/material';
 import { ThumbUp, Comment } from '@mui/icons-material';
 import { fetchPosts, addPost } from '../api/mockApi';
@@ -12,23 +12,25 @@ interface Post {
   content: string;
   likes: number;
   comments: string[];
+  sentiment?: 'bullish' | 'bearish';
 }
 
 const mockChartData = (ticker: string) => ({
-  time: [1711929600, 1712016000, 1712102400], // Mock timestamps (March 31 - April 2, 2025)
-  value: ticker === 'AAPL' ? [175, 178, 176] : ticker === 'TSLA' ? [420, 415, 430] : [2800, 2820, 2790], // Mock prices
+  time: [1711929600, 1712016000, 1712102400], // March 31 - April 2, 2025
+  value: ticker === 'AAPL' ? [175, 178, 176] : ticker === 'TSLA' ? [420, 415, 430] : [2800, 2820, 2790],
 });
 
 const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(0);
   const [newPost, setNewPost] = useState('');
+  const [filterTicker, setFilterTicker] = useState('');
   const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [showChart, setShowChart] = useState<{ [key: number]: string | null }>({});
   const [news, setNews] = useState<{ [key: number]: any[] }>({});
   const chartRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetchPosts(page, 5).then((fetchedPosts) =>
@@ -52,7 +54,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
 
   useEffect(() => {
     Object.entries(showChart).forEach(([index, ticker]) => {
-      if (ticker && chartRefs.current[Number(index)]) {
+      if (ticker && chartRefs.current[Number(index)] && window.TradingView) {
         const chart = window.TradingView.createChart(chartRefs.current[Number(index)]!, {
           width: 300,
           height: 200,
@@ -69,12 +71,14 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPost.trim()) return;
+    const sentiment = newPost.toLowerCase().includes('bull') ? 'bullish' : newPost.toLowerCase().includes('bear') ? 'bearish' : undefined;
     const post: Post = {
       user: username || 'Guest',
       time: 'Just now',
       content: newPost,
       likes: 0,
       comments: [],
+      sentiment,
     };
     await addPost(post);
     setPosts((prev) => [post, ...prev]);
@@ -82,18 +86,14 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   };
 
   const handleLike = (index: number) => {
-    setPosts((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, likes: p.likes + 1 } : p))
-    );
+    setPosts((prev) => prev.map((p, i) => (i === index ? { ...p, likes: p.likes + 1 } : p)));
   };
 
   const handleCommentSubmit = (index: number) => {
     const comment = commentInputs[index]?.trim();
     if (!comment) return;
     setPosts((prev) =>
-      prev.map((p, i) =>
-        i === index ? { ...p, comments: [...p.comments, comment] } : p
-      )
+      prev.map((p, i) => (i === index ? { ...p, comments: [...p.comments, comment] } : p))
     );
     setCommentInputs((prev) => ({ ...prev, [index]: '' }));
   };
@@ -122,8 +122,20 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     );
   };
 
+  const filteredPosts = filterTicker
+    ? posts.filter((post) => post.content.includes(filterTicker))
+    : posts;
+
   return (
     <Container maxWidth="sm" sx={{ mt: 2 }}>
+      <TextField
+        fullWidth
+        label="Filter by ticker (e.g., $AAPL)"
+        value={filterTicker}
+        onChange={(e) => setFilterTicker(e.target.value)}
+        variant="outlined"
+        sx={{ mb: 2 }}
+      />
       <form onSubmit={handlePostSubmit} style={{ marginBottom: '20px' }}>
         <TextField
           fullWidth
@@ -137,31 +149,25 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
           Post
         </Button>
       </form>
-      {posts.map((post, index) => (
+      {filteredPosts.map((post, index) => (
         <Card key={index} sx={{ mb: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <img
+              src={`https://ui-avatars.com/api/?name=${post.user}&background=8B0000&color=FFFFFF`}
+              alt={post.user}
+              style={{ width: 32, height: 32, borderRadius: '50%', marginRight: 8 }}
+            />
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>{post.user}</Typography>
             <Typography variant="caption" color="text.secondary">{post.time}</Typography>
           </Box>
-          <Typography variant="body2">{renderContentWithTickers(post.content, index)}</Typography>
-          {showChart[index] && (
-            <Box sx={{ mt: 2 }}>
-              <div ref={(el) => (chartRefs.current[index] = el)} />
-              <Button onClick={() => setShowChart((prev) => ({ ...prev, [index]: null }))} sx={{ mt: 1 }}>
-                Hide Chart
-              </Button>
-            </Box>
-          )}
-          {news[index] && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1">Latest News for ${showChart[index]}</Typography>
-              {news[index].map((item, i) => (
-                <Typography key={i} variant="body2">
-                  <Link href={item.url} target="_blank">{item.title}</Link> - {item.source}
-                </Typography>
-              ))}
-            </Box>
-          )}
+          <Typography variant="body2">
+            {renderContentWithTickers(post.content, index)}{' '}
+            {post.sentiment && (
+              <Typography component="span" sx={{ color: post.sentiment === 'bullish' ? 'green' : 'red', fontWeight: 600 }}>
+                [{post.sentiment}]
+              </Typography>
+            )}
+          </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <IconButton onClick={() => handleLike(index)} size="small">
               <ThumbUp fontSize="small" /> {post.likes}
@@ -180,9 +186,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
               size="small"
               placeholder="Add a comment"
               value={commentInputs[index] || ''}
-              onChange={(e) =>
-                setCommentInputs((prev) => ({ ...prev, [index]: e.target.value }))
-              }
+              onChange={(e) => setCommentInputs((prev) => ({ ...prev, [index]: e.target.value }))}
               onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(index)}
               sx={{ width: '70%' }}
             />

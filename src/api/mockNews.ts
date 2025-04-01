@@ -5,10 +5,11 @@ interface NewsItem {
   ticker: string;
 }
 
-const mockNews: NewsItem[] = [
+const mockNews = [
   { title: 'Apple Beats Q1 Estimates', source: 'Benzinga', url: 'https://benzinga.com', ticker: 'AAPL' },
   { title: 'Tesla Recalls 1M Vehicles', source: 'MarketWatch', url: 'https://marketwatch.com', ticker: 'TSLA' },
   { title: 'Google AI Push Boosts Shares', source: 'CNBC', url: 'https://cnbc.com', ticker: 'GOOG' },
+  { title: '$AAPL Up 5% on New Product', source: 'Yahoo Finance', url: 'https://finance.yahoo.com', ticker: 'AAPL' },
 ];
 
 export const fetchNews = async (ticker: string): Promise<NewsItem[]> => {
