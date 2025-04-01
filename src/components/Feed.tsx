@@ -3,6 +3,7 @@ import {
   Container, Typography, TextField, Card, Box, IconButton, Button, Link,
 } from '@mui/material';
 import { ThumbUp, Comment } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { fetchPosts, addPost } from '../api/mockApi';
 import { fetchNews } from '../api/mockNews';
 
@@ -15,22 +16,17 @@ interface Post {
   sentiment?: 'bullish' | 'bearish';
 }
 
-const mockChartData = (ticker: string) => ({
-  time: [1711929600, 1712016000, 1712102400], // March 31 - April 2, 2025
-  value: ticker === 'AAPL' ? [175, 178, 176] : ticker === 'TSLA' ? [420, 415, 430] : [2800, 2820, 2790],
-});
-
 const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(0);
   const [newPost, setNewPost] = useState('');
   const [filterTicker, setFilterTicker] = useState('');
   const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [showChart, setShowChart] = useState<{ [key: number]: string | null }>({});
   const [news, setNews] = useState<{ [key: number]: any[] }>({});
   const chartRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetchPosts(page, 5).then((fetchedPosts) =>
@@ -67,6 +63,11 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
       }
     });
   }, [showChart]);
+
+  const mockChartData = (ticker: string) => ({
+    time: [1711929600, 1712016000, 1712102400],
+    value: ticker === 'AAPL' ? [175, 178, 176] : ticker === 'TSLA' ? [420, 415, 430] : [2800, 2820, 2790],
+  });
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,51 +151,80 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
         </Button>
       </form>
       {filteredPosts.map((post, index) => (
-        <Card key={index} sx={{ mb: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card sx={{ mb: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <img
+            <motion.img
               src={`https://ui-avatars.com/api/?name=${post.user}&background=8B0000&color=FFFFFF`}
               alt={post.user}
               style={{ width: 32, height: 32, borderRadius: '50%', marginRight: 8 }}
+              whileHover={{ scale: 1.1, boxShadow: '0 0 8px rgba(139, 0, 0, 0.5)' }}
+              transition={{ duration: 0.2 }}
             />
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>{post.user}</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>
+              {post.user} <Typography component="span" variant="caption" color="text.secondary">(Trader)</Typography>
+            </Typography>
             <Typography variant="caption" color="text.secondary">{post.time}</Typography>
           </Box>
-          <Typography variant="body2">
-            {renderContentWithTickers(post.content, index)}{' '}
-            {post.sentiment && (
-              <Typography component="span" sx={{ color: post.sentiment === 'bullish' ? 'green' : 'red', fontWeight: 600 }}>
-                [{post.sentiment}]
-              </Typography>
-            )}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton onClick={() => handleLike(index)} size="small">
-              <ThumbUp fontSize="small" /> {post.likes}
-            </IconButton>
-            <IconButton size="small">
-              <Comment fontSize="small" /> {post.comments.length}
-            </IconButton>
-          </Box>
-          {post.comments.map((comment, cIndex) => (
-            <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2 }}>
-              {renderContentWithTickers(comment, index)}
+            <Typography variant="body2">
+              {renderContentWithTickers(post.content, index)}{' '}
+              {post.sentiment && (
+                <Typography component="span" sx={{ color: post.sentiment === 'bullish' ? 'green' : 'red', fontWeight: 600 }}>
+                  [{post.sentiment}]
+                </Typography>
+              )}
             </Typography>
-          ))}
-          <Box sx={{ mt: 1 }}>
-            <TextField
-              size="small"
-              placeholder="Add a comment"
-              value={commentInputs[index] || ''}
-              onChange={(e) => setCommentInputs((prev) => ({ ...prev, [index]: e.target.value }))}
-              onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(index)}
-              sx={{ width: '70%' }}
-            />
-            <Button size="small" onClick={() => handleCommentSubmit(index)} sx={{ ml: 1 }}>
-              Comment
-            </Button>
-          </Box>
-        </Card>
+            {showChart[index] && (
+              <Box sx={{ mt: 2 }}>
+                <div ref={(el) => (chartRefs.current[index] = el)} />
+                <Button onClick={() => setShowChart((prev) => ({ ...prev, [index]: null }))} sx={{ mt: 1 }}>
+                  Hide Chart
+                </Button>
+              </Box>
+            )}
+            {news[index] && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle1">News for ${showChart[index]}</Typography>
+                {news[index].map((item, i) => (
+                  <Typography key={i} variant="body2">
+                    <Link href={item.url} target="_blank">{item.title}</Link> - {item.source}
+                  </Typography>
+                ))}
+              </Box>
+            )}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <IconButton onClick={() => handleLike(index)} size="small">
+                <ThumbUp fontSize="small" /> {post.likes}
+              </IconButton>
+              <IconButton size="small">
+                <Comment fontSize="small" /> {post.comments.length}
+              </IconButton>
+            </Box>
+            {post.comments.map((comment, cIndex) => (
+              <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2 }}>
+                {renderContentWithTickers(comment, index)}
+              </Typography>
+            ))}
+            <Box sx={{ mt: 1 }}>
+              <TextField
+                size="small"
+                placeholder="Add a comment"
+                value={commentInputs[index] || ''}
+                onChange={(e) => setCommentInputs((prev) => ({ ...prev, [index]: e.target.value }))}
+                onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(index)}
+                sx={{ width: '70%' }}
+              />
+              <Button size="small" onClick={() => handleCommentSubmit(index)} sx={{ ml: 1 }}>
+                Comment
+              </Button>
+            </Box>
+          </Card>
+        </motion.div>
       ))}
       <div ref={loadMoreRef} style={{ height: '20px' }} />
     </Container>

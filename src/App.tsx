@@ -6,6 +6,7 @@ import Toolbar from './components/Toolbar';
 import Feed from './components/Feed';
 import NewsTab from './components/NewsTab';
 import Profile from './components/Profile';
+import SentimentBar from './components/SentimentBar';
 import './App.css';
 
 const App: React.FC = () => {
@@ -40,6 +41,7 @@ const App: React.FC = () => {
           <Link to="/news" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>News</Link>
           <Link to="/profile" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Profile</Link>
         </nav>
+        <SentimentBar />
         <main>
           <Routes>
             <Route path="/feed" element={<Feed />} />

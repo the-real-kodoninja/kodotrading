@@ -1,12 +1,15 @@
 nav {
   padding: 10px;
   text-align: center;
+  background: #8B0000;
+  color: #FFFFFF;
 }
 
 a {
   text-decoration: none;
   font-weight: 500;
   margin: 0 15px;
+  color: inherit;
 }
 
 a:hover {
@@ -19,6 +22,13 @@ main {
   justify-content: center;
   align-items: flex-start;
   padding: 0 10px;
+  background: linear-gradient(135deg, #FFFFFF, #F5F5F5); /* Light mode */
+}
+
+@media (prefers-color-scheme: dark) {
+  main {
+    background: linear-gradient(135deg, #353839, #424242); /* Dark mode */
+  }
 }
 
 @media (max-width: 600px) {
