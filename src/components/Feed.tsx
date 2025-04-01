@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Container, Typography, TextField, Card, Box, IconButton, Button, Link,
+  Container, Typography, TextField, Card, Box, IconButton, Button, Link, Chip,
 } from '@mui/material';
-import { ThumbUp, Comment } from '@mui/icons-material';
+import { ThumbUp, Comment, Share, Delete, EmojiEmotions } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { fetchPosts, addPost } from '../api/mockApi';
 import { fetchNews } from '../api/mockNews';
 
 interface Post {
+  id: number;
   user: string;
   time: string;
   content: string;
   likes: number;
   comments: string[];
+  shares: number;
   sentiment?: 'bullish' | 'bearish';
+  media?: { type: 'photo' | 'video' | 'stock'; url: string };
 }
 
 const Feed: React.FC<{ username: string | null }> = ({ username }) => {
@@ -21,27 +24,27 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const [page, setPage] = useState(0);
   const [newPost, setNewPost] = useState('');
   const [filterTicker, setFilterTicker] = useState('');
+  const [watchlist, setWatchlist] = useState<string[]>([]);
   const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
   const [showChart, setShowChart] = useState<{ [key: number]: string | null }>({});
   const [news, setNews] = useState<{ [key: number]: any[] }>({});
   const chartRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchPosts(page, 5).then((fetchedPosts) =>
       setPosts((prev) => [
         ...prev,
-        ...fetchedPosts.map((p) => ({ ...p, likes: 0, comments: [] })),
+        ...fetchedPosts.map((p, i) => ({ ...p, id: prev.length + i, shares: 0 })),
       ])
     );
   }, [page]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) setPage((prev) => prev + 1);
-      },
+      (entries) => entries[0].isIntersecting && setPage((prev) => prev + 1),
       { threshold: 1.0 }
     );
     if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
@@ -73,31 +76,36 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     e.preventDefault();
     if (!newPost.trim()) return;
     const sentiment = newPost.toLowerCase().includes('bull') ? 'bullish' : newPost.toLowerCase().includes('bear') ? 'bearish' : undefined;
+    const media = fileInputRef.current?.files?.[0]
+      ? { type: fileInputRef.current.files[0].type.startsWith('video') ? 'video' : 'photo', url: URL.createObjectURL(fileInputRef.current.files[0]) }
+      : undefined;
     const post: Post = {
+      id: posts.length,
       user: username || 'Guest',
       time: 'Just now',
       content: newPost,
       likes: 0,
       comments: [],
+      shares: 0,
       sentiment,
+      media,
     };
     await addPost(post);
     setPosts((prev) => [post, ...prev]);
     setNewPost('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleLike = (index: number) => {
-    setPosts((prev) => prev.map((p, i) => (i === index ? { ...p, likes: p.likes + 1 } : p)));
-  };
-
-  const handleCommentSubmit = (index: number) => {
-    const comment = commentInputs[index]?.trim();
+  const handleLike = (id: number) => setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, likes: p.likes + 1 } : p)));
+  const handleShare = (id: number) => setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, shares: p.shares + 1 } : p)));
+  const handleDelete = (id: number) => setPosts((prev) => prev.filter((p) => p.id !== id));
+  const handleCommentSubmit = (id: number) => {
+    const comment = commentInputs[id]?.trim();
     if (!comment) return;
-    setPosts((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, comments: [...p.comments, comment] } : p))
-    );
-    setCommentInputs((prev) => ({ ...prev, [index]: '' }));
+    setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, comments: [...p.comments, comment] } : p)));
+    setCommentInputs((prev) => ({ ...prev, [id]: '' }));
   };
+  const addToWatchlist = (ticker: string) => setWatchlist((prev) => [...new Set([...prev, ticker])]);
 
   const renderContentWithTickers = (content: string, index: number) => {
     const tickerRegex = /\$([A-Z]{1,5})/g;
@@ -112,6 +120,7 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
             setShowChart((prev) => ({ ...prev, [index]: part }));
             const newsItems = await fetchNews(part);
             setNews((prev) => ({ ...prev, [index]: newsItems }));
+            addToWatchlist(part);
           }}
           sx={{ color: 'primary.main', cursor: 'pointer' }}
         >
@@ -123,12 +132,16 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     );
   };
 
-  const filteredPosts = filterTicker
-    ? posts.filter((post) => post.content.includes(filterTicker))
-    : posts;
+  const filteredPosts = filterTicker ? posts.filter((post) => post.content.includes(filterTicker)) : posts;
 
   return (
     <Container maxWidth="sm" sx={{ mt: 2 }}>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6">Watchlist</Typography>
+        {watchlist.map((ticker) => (
+          <Chip key={ticker} label={`$${ticker}`} onDelete={() => setWatchlist((prev) => prev.filter((t) => t !== ticker))} sx={{ mr: 1 }} />
+        ))}
+      </Box>
       <TextField
         fullWidth
         label="Filter by ticker (e.g., $AAPL)"
@@ -146,51 +159,50 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
           variant="outlined"
           sx={{ mb: 1 }}
         />
-        <Button type="submit" variant="contained" color="primary">
-          Post
-        </Button>
+        <input type="file" ref={fileInputRef} accept="image/*,video/*" style={{ marginBottom: 8 }} />
+        <Button type="submit" variant="contained" color="primary">Post</Button>
       </form>
-      {filteredPosts.map((post, index) => (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
+      {filteredPosts.map((post) => (
+        <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           <Card sx={{ mb: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <motion.img
-                src={`https://ui-avatars.com/api/?name=${post.user}&background=8B0000&color=FFFFFF`}
-                alt={post.user}
-                style={{ width: 32, height: 32, borderRadius: '50%', marginRight: 8 }}
-                whileHover={{ scale: 1.1, boxShadow: '0 0 8px rgba(139, 0, 0, 0.5)' }}
-                transition={{ duration: 0.2 }}
-              />
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>
-                {post.user} <Typography component="span" variant="caption" color="text.secondary">(Trader)</Typography>
-              </Typography>
-              <Typography variant="caption" color="text.secondary">{post.time}</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <motion.img
+                  src={`https://ui-avatars.com/api/?name=${post.user}&background=8B0000&color=FFFFFF`}
+                  alt={post.user}
+                  style={{ width: 32, height: 32, borderRadius: '50%', marginRight: 8 }}
+                  whileHover={{ scale: 1.1, boxShadow: '0 0 8px rgba(139, 0, 0, 0.5)' }}
+                  transition={{ duration: 0.2 }}
+                />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>
+                  {post.user} <Typography component="span" variant="caption" color="text.secondary">(Trader)</Typography>
+                </Typography>
+                <Typography variant="caption" color="text.secondary">{post.time}</Typography>
+              </Box>
+              {post.user === username && <IconButton onClick={() => handleDelete(post.id)}><Delete /></IconButton>}
             </Box>
             <Typography variant="body2">
-              {renderContentWithTickers(post.content, index)}{' '}
+              {renderContentWithTickers(post.content, post.id)}{' '}
               {post.sentiment && (
                 <Typography component="span" sx={{ color: post.sentiment === 'bullish' ? 'green' : 'red', fontWeight: 600 }}>
                   [{post.sentiment}]
                 </Typography>
               )}
             </Typography>
-            {showChart[index] && (
+            {post.media && (
+              post.media.type === 'photo' ? <img src={post.media.url} alt="Post media" style={{ maxWidth: '100%' }} /> :
+              <video src={post.media.url} controls style={{ maxWidth: '100%' }} />
+            )}
+            {showChart[post.id] && (
               <Box sx={{ mt: 2 }}>
-                <div ref={(el) => (chartRefs.current[index] = el)} />
-                <Button onClick={() => setShowChart((prev) => ({ ...prev, [index]: null }))} sx={{ mt: 1 }}>
-                  Hide Chart
-                </Button>
+                <div ref={(el) => (chartRefs.current[post.id] = el)} />
+                <Button onClick={() => setShowChart((prev) => ({ ...prev, [post.id]: null }))} sx={{ mt: 1 }}>Hide Chart</Button>
               </Box>
             )}
-            {news[index] && (
+            {news[post.id] && (
               <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle1">News for ${showChart[index]}</Typography>
-                {news[index].map((item, i) => (
+                <Typography variant="subtitle1">News for ${showChart[post.id]}</Typography>
+                {news[post.id].map((item, i) => (
                   <Typography key={i} variant="body2">
                     <Link href={item.url} target="_blank">{item.title}</Link> - {item.source}
                   </Typography>
@@ -198,30 +210,26 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
               </Box>
             )}
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton onClick={() => handleLike(index)} size="small">
-                <ThumbUp fontSize="small" /> {post.likes}
-              </IconButton>
-              <IconButton size="small">
-                <Comment fontSize="small" /> {post.comments.length}
-              </IconButton>
+              <IconButton onClick={() => handleLike(post.id)}><ThumbUp fontSize="small" /> {post.likes}</IconButton>
+              <IconButton><Comment fontSize="small" /> {post.comments.length}</IconButton>
+              <IconButton onClick={() => handleShare(post.id)}><Share fontSize="small" /> {post.shares}</IconButton>
+              <IconButton><EmojiEmotions fontSize="small" /></IconButton> {/* Placeholder for emoji picker */}
             </Box>
             {post.comments.map((comment, cIndex) => (
               <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2 }}>
-                {renderContentWithTickers(comment, index)}
+                {renderContentWithTickers(comment, post.id)}
               </Typography>
             ))}
             <Box sx={{ mt: 1 }}>
               <TextField
                 size="small"
                 placeholder="Add a comment"
-                value={commentInputs[index] || ''}
-                onChange={(e) => setCommentInputs((prev) => ({ ...prev, [index]: e.target.value }))}
-                onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(index)}
+                value={commentInputs[post.id] || ''}
+                onChange={(e) => setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))}
+                onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
                 sx={{ width: '70%' }}
               />
-              <Button size="small" onClick={() => handleCommentSubmit(index)} sx={{ ml: 1 }}>
-                Comment
-              </Button>
+              <Button size="small" onClick={() => handleCommentSubmit(post.id)} sx={{ ml: 1 }}>Comment</Button>
             </Box>
           </Card>
         </motion.div>
@@ -230,16 +238,5 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     </Container>
   );
 };
-
-/* Minimal version for debugging later
-const Feed: React.FC<{ username: string | null }> = ({ username }) => {
-  return (
-    <Container maxWidth="sm" sx={{ mt: 2 }}>
-      <Typography variant="h6">Feed</Typography>
-      <Typography>Welcome, {username || 'Guest'}! This is the trading feed.</Typography>
-    </Container>
-  );
-};
-*/
 
 export default Feed;

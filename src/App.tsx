@@ -7,6 +7,9 @@ import Feed from './components/Feed';
 import Profile from './components/Profile';
 import NewsTab from './components/NewsTab';
 import SentimentBar from './components/SentimentBar';
+import StockScreener from './components/StockScreener';
+import NimbusAI from './components/NimbusAI';
+import StopLoss from './components/StopLoss';
 import './App.css';
 
 const App: React.FC = () => {
@@ -39,6 +42,9 @@ const App: React.FC = () => {
         <Link to="/" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Feed</Link>
         <Link to="/profile" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Profile</Link>
         <Link to="/news" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>News</Link>
+        <Link to="/screener" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Screener</Link>
+        <Link to="/nimbus" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Nimbus.AI</Link>
+        <Link to="/stoploss" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Stop Loss</Link>
       </nav>
       <SentimentBar />
       <main>
@@ -46,6 +52,9 @@ const App: React.FC = () => {
           <Route path="/" element={<Feed username={username} />} />
           <Route path="/profile" element={<Profile trades={200} followers={500} bio="Swing trader since 2015." />} />
           <Route path="/news" element={<NewsTab />} />
+          <Route path="/screener" element={<StockScreener />} />
+          <Route path="/nimbus" element={<NimbusAI />} />
+          <Route path="/stoploss" element={<StopLoss />} />
         </Routes>
       </main>
     </ThemeProvider>
