@@ -13,6 +13,8 @@ import StopLoss from './components/StopLoss';
 import LiveChat from './components/LiveChat';
 import LiveVideo from './components/LiveVideo';
 import PortfolioTracker from './components/PortfolioTracker';
+import Notifications from './components/Notifications';
+import Analytics from './components/Analytics';
 import './App.css';
 
 const App: React.FC = () => {
@@ -51,6 +53,8 @@ const App: React.FC = () => {
         <Link to="/chat" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Live Chat</Link>
         <Link to="/video" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Live Video</Link>
         <Link to="/portfolio" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Portfolio</Link>
+        <Link to="/notifications" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Notifications</Link>
+        <Link to="/analytics" style={{ margin: '0 10px', color: isDarkMode ? '#E4E6EB' : '#1C2526' }}>Analytics</Link>
       </nav>
       <SentimentBar />
       <main>
@@ -64,6 +68,8 @@ const App: React.FC = () => {
           <Route path="/chat" element={<LiveChat username={username} />} />
           <Route path="/video" element={<LiveVideo />} />
           <Route path="/portfolio" element={<PortfolioTracker />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/analytics" element={<Analytics />} />
         </Routes>
       </main>
     </ThemeProvider>
