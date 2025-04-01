@@ -8,13 +8,30 @@ import Profile from './components/Profile';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
+  const handleLogin = (username: string) => {
+    setIsAuthenticated(true);
+    setUsername(username);
+  };
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUsername(null);
+  };
 
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <CssBaseline />
-      <Toolbar isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+      <Toolbar
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+        isAuthenticated={isAuthenticated}
+        username={username}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+      />
       <nav>
         <Link to="/" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Feed</Link>
         <Link to="/profile" style={{ margin: '0 10px', color: isDarkMode ? '#FFFFFF' : '#353839' }}>Profile</Link>
@@ -22,7 +39,7 @@ const App: React.FC = () => {
       <main>
         <Routes>
           <Route path="/" element={<Feed />} />
-            <Route path="/profile" element={<Profile trades={200} followers={500} bio="Swing trader since 2015." />} />
+          <Route path="/profile" element={<Profile trades={200} followers={500} bio="Swing trader since 2015." />} />
         </Routes>
       </main>
     </ThemeProvider>
