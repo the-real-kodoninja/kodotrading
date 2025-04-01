@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Card, CardContent, CardHeader, Typography, Container, TextField, Button, IconButton, Box,
+  Card, CardContent, Typography, Container, TextField, Button, IconButton, Box, Link,
 } from '@mui/material';
 import { ThumbUp, Comment } from '@mui/icons-material';
 import { fetchPosts, addPost } from '../api/mockApi';
+import { fetchNews } from '../api/mockNews';
 
 interface Post {
   user: string;
@@ -13,11 +14,19 @@ interface Post {
   comments: string[];
 }
 
+const mockChartData = (ticker: string) => ({
+  time: [1711929600, 1712016000, 1712102400], // Mock timestamps (March 31 - April 2, 2025)
+  value: ticker === 'AAPL' ? [175, 178, 176] : ticker === 'TSLA' ? [420, 415, 430] : [2800, 2820, 2790], // Mock prices
+});
+
 const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(0);
   const [newPost, setNewPost] = useState('');
   const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
+  const [showChart, setShowChart] = useState<{ [key: number]: string | null }>({});
+  const [news, setNews] = useState<{ [key: number]: any[] }>({});
+  const chartRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -37,11 +46,25 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
       },
       { threshold: 1.0 }
     );
-
     if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
-
     return () => observerRef.current?.disconnect();
   }, []);
+
+  useEffect(() => {
+    Object.entries(showChart).forEach(([index, ticker]) => {
+      if (ticker && chartRefs.current[Number(index)]) {
+        const chart = window.TradingView.createChart(chartRefs.current[Number(index)]!, {
+          width: 300,
+          height: 200,
+          layout: { background: { type: 'solid', color: '#353839' }, textColor: '#FFFFFF' },
+          grid: { vertLines: { color: '#424242' }, horzLines: { color: '#424242' } },
+        });
+        chart.addLineSeries({ color: '#8B0000' }).setData(
+          mockChartData(ticker).time.map((t, i) => ({ time: t, value: mockChartData(ticker).value[i] }))
+        );
+      }
+    });
+  }, [showChart]);
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,12 +98,36 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     setCommentInputs((prev) => ({ ...prev, [index]: '' }));
   };
 
+  const renderContentWithTickers = (content: string, index: number) => {
+    const tickerRegex = /\$([A-Z]{1,5})/g;
+    const parts = content.split(tickerRegex);
+    return parts.map((part, i) =>
+      tickerRegex.test(`$${part}`) ? (
+        <Link
+          key={i}
+          href="#"
+          onClick={async (e) => {
+            e.preventDefault();
+            setShowChart((prev) => ({ ...prev, [index]: part }));
+            const newsItems = await fetchNews(part);
+            setNews((prev) => ({ ...prev, [index]: newsItems }));
+          }}
+          sx={{ color: 'primary.main', cursor: 'pointer' }}
+        >
+          ${part}
+        </Link>
+      ) : (
+        part
+      )
+    );
+  };
+
   return (
     <Container maxWidth="sm" sx={{ mt: 2 }}>
       <form onSubmit={handlePostSubmit} style={{ marginBottom: '20px' }}>
         <TextField
           fullWidth
-          label="Share your trading thoughts"
+          label="Share your trading thoughts (e.g., $AAPL bullish)"
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
           variant="outlined"
@@ -91,43 +138,58 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
         </Button>
       </form>
       {posts.map((post, index) => (
-        <Card key={index} sx={{ mb: 2 }}>
-          <CardHeader title={post.user} subheader={post.time} />
-          <CardContent>
-            <Typography>{post.content}</Typography>
-            <Box sx={{ mt: 1 }}>
-              <IconButton onClick={() => handleLike(index)} size="small">
-                <ThumbUp fontSize="small" /> {post.likes}
-              </IconButton>
-              <IconButton size="small">
-                <Comment fontSize="small" /> {post.comments.length}
-              </IconButton>
-            </Box>
-            {post.comments.map((comment, cIndex) => (
-              <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2 }}>
-                {comment}
-              </Typography>
-            ))}
-            <Box sx={{ mt: 1 }}>
-              <TextField
-                size="small"
-                placeholder="Add a comment"
-                value={commentInputs[index] || ''}
-                onChange={(e) =>
-                  setCommentInputs((prev) => ({ ...prev, [index]: e.target.value }))
-                }
-                onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(index)}
-                sx={{ width: '70%' }}
-              />
-              <Button
-                size="small"
-                onClick={() => handleCommentSubmit(index)}
-                sx={{ ml: 1 }}
-              >
-                Comment
+        <Card key={index} sx={{ mb: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>{post.user}</Typography>
+            <Typography variant="caption" color="text.secondary">{post.time}</Typography>
+          </Box>
+          <Typography variant="body2">{renderContentWithTickers(post.content, index)}</Typography>
+          {showChart[index] && (
+            <Box sx={{ mt: 2 }}>
+              <div ref={(el) => (chartRefs.current[index] = el)} />
+              <Button onClick={() => setShowChart((prev) => ({ ...prev, [index]: null }))} sx={{ mt: 1 }}>
+                Hide Chart
               </Button>
             </Box>
-          </CardContent>
+          )}
+          {news[index] && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1">Latest News for ${showChart[index]}</Typography>
+              {news[index].map((item, i) => (
+                <Typography key={i} variant="body2">
+                  <Link href={item.url} target="_blank">{item.title}</Link> - {item.source}
+                </Typography>
+              ))}
+            </Box>
+          )}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton onClick={() => handleLike(index)} size="small">
+              <ThumbUp fontSize="small" /> {post.likes}
+            </IconButton>
+            <IconButton size="small">
+              <Comment fontSize="small" /> {post.comments.length}
+            </IconButton>
+          </Box>
+          {post.comments.map((comment, cIndex) => (
+            <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2 }}>
+              {renderContentWithTickers(comment, index)}
+            </Typography>
+          ))}
+          <Box sx={{ mt: 1 }}>
+            <TextField
+              size="small"
+              placeholder="Add a comment"
+              value={commentInputs[index] || ''}
+              onChange={(e) =>
+                setCommentInputs((prev) => ({ ...prev, [index]: e.target.value }))
+              }
+              onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(index)}
+              sx={{ width: '70%' }}
+            />
+            <Button size="small" onClick={() => handleCommentSubmit(index)} sx={{ ml: 1 }}>
+              Comment
+            </Button>
+          </Box>
         </Card>
       ))}
       <div ref={loadMoreRef} style={{ height: '20px' }} />
