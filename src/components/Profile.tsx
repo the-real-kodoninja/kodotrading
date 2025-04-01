@@ -24,6 +24,7 @@ const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [nfts, setNfts] = useState<NFT[]>([]);
+  const [followTx, setFollowTx] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts(0, 3).then((posts) => setRecentPosts(posts));
@@ -34,9 +35,18 @@ const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
     setNfts(mockNfts);
   }, []);
 
+  const handleFollow = () => {
+    if (isFollowing) {
+      setFollowTx(`Unfollowed TraderX on blockchain: tx:0xdef456...`);
+      setIsFollowing(false);
+    } else {
+      setFollowTx(`Followed TraderX on blockchain: tx:0xabc123...`);
+      setIsFollowing(true);
+    }
+  };
+
   return (
     <Container maxWidth="md" sx={{ mt: 2 }}>
-      {/* Cover Photo */}
       <Box
         sx={{
           height: 200,
@@ -59,7 +69,6 @@ const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
         />
       </Box>
 
-      {/* User Info */}
       <Box sx={{ ml: 20, mb: 4 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>TraderX</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{bio}</Typography>
@@ -70,16 +79,19 @@ const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
         <Button
           variant={isFollowing ? 'outlined' : 'contained'}
           color="primary"
-          onClick={() => setIsFollowing(!isFollowing)}
+          onClick={handleFollow}
           sx={{ mt: 2 }}
         >
-          {isFollowing ? 'Unfollow' : 'Follow'}
+          {isFollowing ? 'Unfollow (Web5)' : 'Follow (Web5)'}
         </Button>
+        {followTx && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {followTx}
+          </Typography>
+        )}
       </Box>
 
-      {/* Stats and Activity */}
       <Grid container spacing={2}>
-        {/* Recent Posts */}
         <Grid item xs={12} md={6}>
           <Typography variant="h6" sx={{ fontSize: '1rem', mb: 2 }}>Recent Posts</Typography>
           {recentPosts.length ? (
@@ -103,7 +115,6 @@ const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
           )}
         </Grid>
 
-        {/* NFTs Owned */}
         <Grid item xs={12} md={6}>
           <Typography variant="h6" sx={{ fontSize: '1rem', mb: 2 }}>NFTs Owned</Typography>
           <Box sx={{ display: 'flex', overflowX: 'auto', gap: 2, pb: 1 }}>

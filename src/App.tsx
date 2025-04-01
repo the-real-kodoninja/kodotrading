@@ -8,7 +8,7 @@ import Profile from './components/Profile';
 import NewsTab from './components/NewsTab';
 import SentimentBar from './components/SentimentBar';
 import StockScreener from './components/StockScreener';
-import NimbusAI from './ Wcomponents/NimbusAI';
+import NimbusAI from './components/NimbusAI';
 import StopLoss from './components/StopLoss';
 import LiveChat from './components/LiveChat';
 import LiveVideo from './components/LiveVideo';
@@ -19,12 +19,19 @@ import StockPrices from './components/StockPrices';
 import ActivityFeed from './components/ActivityFeed';
 import WalletConnect from './components/WalletConnect';
 import NFTMarketplace from './components/NFTMarketplace';
-import { Feed as FeedIcon, Timeline as ActivityIcon, AccountBalanceWallet, Store, BarChart, Assessment } from '@mui/icons-material';
+import DecentralizedIdentity from './components/DecentralizedIdentity';
+import CryptoTransactionHistory from './components/CryptoTransactionHistory';
+import DecentralizedStorage from './components/DecentralizedStorage';
+import VerifiableCredentials from './components/VerifiableCredentials';
+import Backtest from './components/Backtest';
+import MobileCompanion from './components/MobileCompanion';
+import { Feed as FeedIcon, Timeline as ActivityIcon, AccountBalanceWallet, Store, BarChart, Assessment, VerifiedUser, History, Cloud, Lock } from '@mui/icons-material';
 import './App.css';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [isMobileView, setIsMobileView] = useState(false);
 
   const handleLogin = (username: string) => {
     setIsAuthenticated(true);
@@ -66,8 +73,21 @@ const App: React.FC = () => {
           <Link to="/nft-marketplace" title="NFT Marketplace">
             <Store />
           </Link>
+          <Link to="/identity" title="Decentralized Identity">
+            <VerifiedUser />
+          </Link>
+          <Link to="/transactions" title="Transaction History">
+            <History />
+          </Link>
+          <Link to="/storage" title="Decentralized Storage">
+            <Cloud />
+          </Link>
+          <Link to="/credentials" title="Verifiable Credentials">
+            <Lock />
+          </Link>
         </div>
         <div className="content">
+          <MobileCompanion onToggle={setIsMobileView} />
           <SentimentBar />
           <Routes>
             <Route path="/" element={<Feed username={username} />} />
@@ -85,6 +105,11 @@ const App: React.FC = () => {
             <Route path="/activity" element={<ActivityFeed />} />
             <Route path="/wallet" element={<WalletConnect />} />
             <Route path="/nft-marketplace" element={<NFTMarketplace />} />
+            <Route path="/identity" element={<DecentralizedIdentity />} />
+            <Route path="/transactions" element={<CryptoTransactionHistory />} />
+            <Route path="/storage" element={<DecentralizedStorage />} />
+            <Route path="/credentials" element={<VerifiableCredentials />} />
+            <Route path="/backtest" element={<Backtest />} />
           </Routes>
         </div>
       </main>

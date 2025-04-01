@@ -56,9 +56,36 @@ form, .MuiCard-root {
 
 .MuiTextField-root {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  borderRadius: 12px;
 }
 
 .MuiTextField-root .MuiOutlinedInput-notchedOutline {
   border: none;
+}
+
+/* Mobile styles */
+@media (max-width: 600px) {
+  .sidebar {
+    width: 100%;
+    height: 50px;
+    flex-direction: row;
+    justify-content: space-around;
+    bottom: 0;
+    top: auto;
+    padding: 0;
+  }
+
+  .sidebar a {
+    margin: 0;
+  }
+
+  .content {
+    margin-left: 0;
+    margin-bottom: 50px;
+    padding: 10px;
+  }
+
+  .MuiContainer-maxWidthSm {
+    padding: 0 10px !important;
+  }
 }
