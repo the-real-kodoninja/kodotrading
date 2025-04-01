@@ -158,19 +158,19 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
           transition={{ duration: 0.3 }}
         >
           <Card sx={{ mb: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <motion.img
-              src={`https://ui-avatars.com/api/?name=${post.user}&background=8B0000&color=FFFFFF`}
-              alt={post.user}
-              style={{ width: 32, height: 32, borderRadius: '50%', marginRight: 8 }}
-              whileHover={{ scale: 1.1, boxShadow: '0 0 8px rgba(139, 0, 0, 0.5)' }}
-              transition={{ duration: 0.2 }}
-            />
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>
-              {post.user} <Typography component="span" variant="caption" color="text.secondary">(Trader)</Typography>
-            </Typography>
-            <Typography variant="caption" color="text.secondary">{post.time}</Typography>
-          </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <motion.img
+                src={`https://ui-avatars.com/api/?name=${post.user}&background=8B0000&color=FFFFFF`}
+                alt={post.user}
+                style={{ width: 32, height: 32, borderRadius: '50%', marginRight: 8 }}
+                whileHover={{ scale: 1.1, boxShadow: '0 0 8px rgba(139, 0, 0, 0.5)' }}
+                transition={{ duration: 0.2 }}
+              />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mr: 1 }}>
+                {post.user} <Typography component="span" variant="caption" color="text.secondary">(Trader)</Typography>
+              </Typography>
+              <Typography variant="caption" color="text.secondary">{post.time}</Typography>
+            </Box>
             <Typography variant="body2">
               {renderContentWithTickers(post.content, index)}{' '}
               {post.sentiment && (
@@ -230,5 +230,16 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     </Container>
   );
 };
+
+/* Minimal version for debugging later
+const Feed: React.FC<{ username: string | null }> = ({ username }) => {
+  return (
+    <Container maxWidth="sm" sx={{ mt: 2 }}>
+      <Typography variant="h6">Feed</Typography>
+      <Typography>Welcome, {username || 'Guest'}! This is the trading feed.</Typography>
+    </Container>
+  );
+};
+*/
 
 export default Feed;
