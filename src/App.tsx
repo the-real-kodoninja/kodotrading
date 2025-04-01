@@ -25,7 +25,30 @@ import DecentralizedStorage from './components/DecentralizedStorage';
 import VerifiableCredentials from './components/VerifiableCredentials';
 import Backtest from './components/Backtest';
 import MobileCompanion from './components/MobileCompanion';
-import { Feed as FeedIcon, Timeline as ActivityIcon, AccountBalanceWallet, Store, BarChart, Assessment, VerifiedUser, History, Cloud, Lock } from '@mui/icons-material';
+import Login from './components/Login';
+import SignUp from './components/SignUp';
+import Settings from './components/Settings';
+import About from './components/About';
+import Legal from './components/Legal';
+import Terms from './components/Terms';
+import Footer from './components/Footer';
+import Explore from './components/Explore';
+import Games from './components/Games';
+import {
+  Feed as FeedIcon,
+  Timeline as ActivityIcon,
+  AccountBalanceWallet,
+  Store,
+  BarChart,
+  Assessment,
+  VerifiedUser,
+  History,
+  Cloud,
+  Lock,
+  Explore as ExploreIcon,
+  Games as GamesIcon,
+  Login as LoginIcon,
+} from '@mui/icons-material';
 import './App.css';
 
 const App: React.FC = () => {
@@ -37,6 +60,7 @@ const App: React.FC = () => {
     setIsAuthenticated(true);
     setUsername(username);
   };
+
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUsername(null);
@@ -60,6 +84,12 @@ const App: React.FC = () => {
           </Link>
           <Link to="/activity" title="Activity">
             <ActivityIcon />
+          </Link>
+          <Link to="/explore" title="Explore">
+            <ExploreIcon />
+          </Link>
+          <Link to="/games" title="Games">
+            <GamesIcon />
           </Link>
           <Link to="/screener" title="Stock Screener">
             <BarChart />
@@ -85,6 +115,11 @@ const App: React.FC = () => {
           <Link to="/credentials" title="Verifiable Credentials">
             <Lock />
           </Link>
+          {!isAuthenticated && (
+            <Link to="/login" title="Login">
+              <LoginIcon />
+            </Link>
+          )}
         </div>
         <div className="content">
           <MobileCompanion onToggle={setIsMobileView} />
@@ -93,6 +128,8 @@ const App: React.FC = () => {
             <Route path="/" element={<Feed username={username} />} />
             <Route path="/profile" element={<Profile trades={200} followers={500} bio="Swing trader since 2015." />} />
             <Route path="/news" element={<NewsTab />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/games" element={<Games />} />
             <Route path="/screener" element={<StockScreener />} />
             <Route path="/nimbus" element={<NimbusAI />} />
             <Route path="/stoploss" element={<StopLoss />} />
@@ -110,7 +147,14 @@ const App: React.FC = () => {
             <Route path="/storage" element={<DecentralizedStorage />} />
             <Route path="/credentials" element={<VerifiableCredentials />} />
             <Route path="/backtest" element={<Backtest />} />
+            <Route path="/login" element={<Login onLogin={handleLogin} />} />
+            <Route path="/signup" element={<SignUp onSignUp={handleLogin} />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/legal" element={<Legal />} />
+            <Route path="/terms" element={<Terms />} />
           </Routes>
+          <Footer />
         </div>
       </main>
     </ThemeProvider>

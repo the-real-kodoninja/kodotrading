@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Box, TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { applyTradingRules } from '../utils/tradingRules';
-import { addPost } from '../api/mockApi';
+import { applyTradingRules } from '../../utils/tradingRules';
+import { addPost } from '../../api/mockApi';
 
 interface Post {
   id: number;

@@ -8,23 +8,38 @@ interface Post {
   shares: number;
   sentiment?: 'bullish' | 'bearish';
   media?: { type: 'photo' | 'video' | 'stock'; url: string };
+  nft?: { name: string; image: string; details: { trait: string; value: string }[] };
+  priceUpdate?: { symbol: string; price: number; change: number; type: 'stock' | 'crypto' };
+  tradeSettings?: { stopLoss: number; takeProfit: number; trailingStop: boolean };
 }
 
 let posts: Post[] = [
-  { id: 0, user: 'TraderX', time: '2h ago', content: 'Bullish on $AAPL after earnings!', likes: 0, comments: [], shares: 0, sentiment: 'bullish' },
-  { id: 1, user: 'StockGuru', time: '5h ago', content: '$TSLA dropping—oversold?', likes: 0, comments: [], shares: 0, sentiment: 'bearish' },
+  {
+    id: 1,
+    user: 'TraderX',
+    time: '2h ago',
+    content: 'Going long on $AAPL, looks bullish!',
+    likes: 10,
+    comments: ['Great call!', 'I’m in too!'],
+    shares: 2,
+  },
+  {
+    id: 2,
+    user: 'StockGuru',
+    time: '3h ago',
+    content: 'Bearish on $TSLA, overbought IMO.',
+    likes: 8,
+    comments: ['Interesting take!'],
+    shares: 1,
+  },
 ];
 
-export const fetchPosts = async (page: number, limit: number): Promise<Post[]> => {
+export const fetchPosts = (page: number, limit: number): Post[] => {
   const start = page * limit;
-  return new Promise((resolve) => setTimeout(() => resolve(posts.slice(0, start + limit)), 500));
+  const end = start + limit;
+  return posts.slice(start, end);
 };
 
 export const addPost = async (post: Post): Promise<void> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      posts = [post, ...posts];
-      resolve();
-    }, 500);
-  });
+  posts.unshift(post);
 };

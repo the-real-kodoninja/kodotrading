@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import { ThumbUp, Comment, Share, Delete, EmojiEmotions } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { fetchNews } from '../api/mockNews';
+import { fetchNews } from '../../api/mockNews';
 
 interface Post {
   id: number;

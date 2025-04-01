@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import {
-  AppBar, Toolbar as MuiToolbar, Typography, TextField, Box, List, ListItem, ListItemText, Button, Select, MenuItem,
+  AppBar, Toolbar as MuiToolbar, Typography, TextField, Box, List, ListItem, ListItemText, Button, Select, MenuItem, IconButton,
 } from '@mui/material';
+import { Settings as SettingsIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 interface ToolbarProps {
   isDarkMode: boolean;
@@ -16,6 +18,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ isAuthenticated, username, onLogin, o
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ type: 'ticker' | 'user'; value: string }[]>([]);
   const [selectedBroker, setSelectedBroker] = useState('Alpaca');
+  const navigate = useNavigate();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -33,8 +36,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ isAuthenticated, username, onLogin, o
   };
 
   const handleLogin = () => {
-    const username = prompt('Enter your username:') || 'Guest';
-    onLogin(username);
+    navigate('/login');
   };
 
   return (
@@ -78,6 +80,9 @@ const Toolbar: React.FC<ToolbarProps> = ({ isAuthenticated, username, onLogin, o
           {isAuthenticated ? (
             <>
               <Typography sx={{ mr: 2 }}>Welcome, {username}</Typography>
+              <IconButton onClick={() => navigate('/settings')} color="inherit">
+                <SettingsIcon />
+              </IconButton>
               <Button onClick={onLogout} color="inherit">Logout</Button>
             </>
           ) : (

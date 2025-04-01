@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, TextField } from '@mui/material';
+import { Container, TextField, Tabs, Tab, Typography } from '@mui/material';
 import { fetchPosts } from '../api/mockApi';
-import PostForm from './PostForm';
-import PostCard from './PostCard';
-import Watchlist from './Watchlist';
-import RuleWarnings from './RuleWarnings';
+import PostForm from './feed/PostForm';
+import PostCard from './feed/PostCard';
+import Watchlist from './feed/Watchlist';
+import RuleWarnings from './feed/RuleWarnings';
 
 interface Post {
   id: number;
@@ -21,10 +21,29 @@ interface Post {
   tradeSettings?: { stopLoss: number; takeProfit: number; trailingStop: boolean };
 }
 
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <Typography color="error">Something went wrong in the Feed. Please try again later.</Typography>;
+    }
+    return this.props.children;
+  }
+}
+
 const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(0);
   const [filterTicker, setFilterTicker] = useState('');
+  const [filterType, setFilterType] = useState(0); // 0: All, 1: Photos, 2: Videos, 3: NFTs, 4: Price Updates
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [ruleWarnings, setRuleWarnings] = useState<string[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -60,6 +79,26 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
         comments: [],
         shares: 0,
         priceUpdate: { symbol: 'BTC', price: 60000, change: 1.5, type: 'crypto' },
+      },
+      {
+        id: 102,
+        user: 'TraderY',
+        time: '20m ago',
+        content: 'Check out this chart!',
+        likes: 3,
+        comments: [],
+        shares: 0,
+        media: { type: 'photo', url: 'https://via.placeholder.com/300' },
+      },
+      {
+        id: 103,
+        user: 'TraderZ',
+        time: '15m ago',
+        content: 'Live analysis video!',
+        likes: 7,
+        comments: [],
+        shares: 0,
+        media: { type: 'video', url: 'https://via.placeholder.com/300' },
       },
     ];
     setPosts((prev) => [
@@ -102,35 +141,53 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
     setWatchlist((prev) => [...new Set([...prev, ticker])]);
   };
 
-  const filteredPosts = filterTicker ? posts.filter((post) => post.content.includes(filterTicker)) : posts;
+  const filteredPosts = posts
+    .filter((post) => (filterTicker ? post.content.includes(filterTicker) : true))
+    .filter((post) => {
+      if (filterType === 0) return true;
+      if (filterType === 1) return post.media?.type === 'photo';
+      if (filterType === 2) return post.media?.type === 'video';
+      if (filterType === 3) return !!post.nft;
+      if (filterType === 4) return !!post.priceUpdate;
+      return false;
+    });
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 2 }}>
-      <Watchlist watchlist={watchlist} setWatchlist={setWatchlist} />
-      <TextField
-        fullWidth
-        placeholder="Filter by ticker (e.g., $AAPL)"
-        value={filterTicker}
-        onChange={(e) => setFilterTicker(e.target.value)}
-        variant="outlined"
-        sx={{ mb: 2 }}
-      />
-      <PostForm username={username} onPostSubmit={handlePostSubmit} setRuleWarnings={setRuleWarnings} />
-      <RuleWarnings warnings={ruleWarnings} />
-      {filteredPosts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          username={username}
-          onLike={handleLike}
-          onDelete={handleDelete}
-          onCommentSubmit={handleCommentSubmit}
-          onShare={handleShare}
-          addToWatchlist={addToWatchlist}
+    <ErrorBoundary>
+      <Container maxWidth="sm" sx={{ mt: 2 }}>
+        <Watchlist watchlist={watchlist} setWatchlist={setWatchlist} />
+        <TextField
+          fullWidth
+          placeholder="Filter by ticker (e.g., $AAPL)"
+          value={filterTicker}
+          onChange={(e) => setFilterTicker(e.target.value)}
+          variant="outlined"
+          sx={{ mb: 2 }}
         />
-      ))}
-      <div ref={loadMoreRef} style={{ height: '20px' }} />
-    </Container>
+        <Tabs value={filterType} onChange={(e, newValue) => setFilterType(newValue)} sx={{ mb: 2 }}>
+          <Tab label="All" />
+          <Tab label="Photos" />
+          <Tab label="Videos" />
+          <Tab label="NFTs" />
+          <Tab label="Price Updates" />
+        </Tabs>
+        <PostForm username={username} onPostSubmit={handlePostSubmit} setRuleWarnings={setRuleWarnings} />
+        <RuleWarnings warnings={ruleWarnings} />
+        {filteredPosts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            username={username}
+            onLike={handleLike}
+            onDelete={handleDelete}
+            onCommentSubmit={handleCommentSubmit}
+            onShare={handleShare}
+            addToWatchlist={addToWatchlist}
+          />
+        ))}
+        <div ref={loadMoreRef} style={{ height: '20px' }} />
+      </Container>
+    </ErrorBoundary>
   );
 };
 
