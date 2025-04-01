@@ -1,54 +1,68 @@
-# React + TypeScript + Vite
+# KodoTrading: Revolutionizing Social Trading
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![License: TBD](https://img.shields.io/badge/License-TBD-yellow.svg)](LICENSE.md)
 
-Currently, two official plugins are available:
+KodoTrading is a cutting-edge social trading platform that seamlessly blends the real-time insights of Benzinga with the dynamic community features of StockTwits. Dive into a modern trading experience with a fluid, intuitive UI, complete with customizable light and dark modes.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Key Features
 
-## Expanding the ESLint configuration
+* **Adaptive Light/Dark Modes:**
+    * Experience trading in your preferred visual style. Effortlessly switch between a crisp, clean light mode and a sophisticated dark mode.
+    * Dark mode features a captivating palette of dark red (#8B0000), deep onyx (#353839), and pristine white (#FFFFFF) accents, ensuring both style and readability.
+* **Seamless Fluid Design:**
+    * Navigate with ease through a responsive layout inspired by the smooth transitions and user-friendly experience of platforms like Threads and Facebook.
+    * Enjoy a visually engaging trading environment that adapts to your device.
+* **Robust Tech Stack (Planned):**
+    * **Frontend:** Angular + Angular Material - Building a fast, responsive, and feature-rich user interface.
+    * **Database:** PostgreSQL - Ensuring reliable and scalable data management for financial transactions.
+    * **Backend:** Motoko, Python, Go - Utilizing the power of Motoko for decentralized features, Python for data analysis, and Go for high-performance real-time data processing.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Getting Started
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### 🛠️ Prerequisites
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+* Ensure you have Node.js installed on your system. Download it from [https://nodejs.org/](https://nodejs.org/).
+* Install the Angular CLI globally using npm:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+    ```bash
+    npm install -g @angular/cli
+    ```
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+### 📦 Installation
+
+1.  **Clone the Repository:**
+
+    ```bash
+    git clone [https://github.com/the-real-kodoninja/kodotrading.git](https://github.com/the-real-kodoninja/kodotrading.git)
+    cd kodotrading
+    ```
+
+2.  **Install Dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+3.  **Run the Application:**
+
+    ```bash
+    ng serve --open
+    ```
+
+    * Your browser will automatically open at `http://localhost:4200`.
+
+## 🧑‍💻 Development
+
+* **Theme Toggle:**
+    * The light/dark mode toggle is implemented using `ThemeService` and integrated into `AppComponent`. This allows for easy theme switching and customization.
+* **Next Steps:**
+    * Develop a dynamic social feed component, similar to StockTwits, for real-time market discussions.
+    * Create comprehensive user profile pages, inspired by Benzinga, to provide detailed user insights and interactions.
+
+## 🤝 Contributing
+
+We welcome contributions! Feel free to submit issues or pull requests to help us enhance KodoTrading.
+
+## 📜 License
+
+(To Be Determined - Update with your chosen license)
