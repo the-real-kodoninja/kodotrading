@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   AppBar, Toolbar as MuiToolbar, Typography, TextField, Box, List, ListItem, ListItemText, Button, Select, MenuItem, IconButton,
 } from '@mui/material';
-import { Settings as SettingsIcon } from '@mui/icons-material';
+import { Settings as SettingsIcon, Brightness4 as DarkModeIcon, Brightness7 as LightModeIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 interface ToolbarProps {
@@ -14,7 +14,7 @@ interface ToolbarProps {
   onLogout: () => void;
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({ isAuthenticated, username, onLogin, onLogout }) => {
+const Toolbar: React.FC<ToolbarProps> = ({ isDarkMode, toggleTheme, isAuthenticated, username, onLogin, onLogout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ type: 'ticker' | 'user'; value: string }[]>([]);
   const [selectedBroker, setSelectedBroker] = useState('Alpaca');
@@ -77,6 +77,9 @@ const Toolbar: React.FC<ToolbarProps> = ({ isAuthenticated, username, onLogin, o
             <MenuItem value="TradeZero">TradeZero</MenuItem>
             <MenuItem value="IB">Interactive Brokers</MenuItem>
           </Select>
+          <IconButton onClick={toggleTheme} color="inherit">
+            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
           {isAuthenticated ? (
             <>
               <Typography sx={{ mr: 2 }}>Welcome, {username}</Typography>

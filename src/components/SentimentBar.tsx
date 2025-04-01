@@ -1,36 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import React from 'react';
+import { Box, Typography, Divider } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 const SentimentBar: React.FC = () => {
-  const [sentiments, setSentiments] = useState([
-    { ticker: 'AAPL', bullish: 1, bearish: 0, sentimentScore: 0.8 },
-    { ticker: 'TSLA', bullish: 0, bearish: 1, sentimentScore: -0.5 },
-  ]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSentiments((prev) =>
-        prev.map((item) => ({
-          ...item,
-          sentimentScore: Math.random() * 2 - 1, // Mock NLP sentiment score (-1 to 1)
-        }))
-      );
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  const sentiments = [
+    { ticker: '$AAPL', bullish: 1, bearish: 0, score: 0.20 },
+    { ticker: '$TSLA', bullish: 0, bearish: 1, score: 1.00 },
+  ];
 
   return (
-    <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 2, mb: 2 }}>
-      <Typography variant="h6" sx={{ fontSize: '1rem' }}>Ticker Sentiment</Typography>
-      {sentiments.map((item) => (
-        <Box key={item.ticker} sx={{ mb: 1 }}>
-          <Typography variant="body2">
-            ${item.ticker}: {item.bullish} Bullish / {item.bearish} Bearish
-            <Typography component="span" sx={{ ml: 1, color: item.sentimentScore >= 0 ? '#2E7D32' : '#D32F2F' }}>
-              Sentiment Score: {item.sentimentScore.toFixed(2)}
+    <Box sx={{ bgcolor: '#242526', p: 1, borderRadius: 2, mb: 2, mx: 2 }}>
+      <Typography variant="body2" sx={{ fontSize: '0.8rem', mb: 1 }}>
+        TICKER SENTIMENT
+      </Typography>
+      {sentiments.map((sentiment, index) => (
+        <Box key={index}>
+          <Link to={`/stock/${sentiment.ticker.replace('$', '')}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Typography variant="body2" sx={{ fontSize: '0.8rem', color: sentiment.score > 0 ? '#FF0000' : '#00FF00' }}>
+              {sentiment.ticker}: {sentiment.bullish} Bullish / {sentiment.bearish} Bearish | Sentiment Score: {sentiment.score.toFixed(2)}
             </Typography>
-          </Typography>
-          <Box sx={{ height: 5, bgcolor: item.sentimentScore >= 0 ? '#2E7D32' : '#D32F2F', borderRadius: 2 }} />
+          </Link>
+          {index < sentiments.length - 1 && <Divider sx={{ my: 1, borderColor: 'rgba(255, 255, 255, 0.1)' }} />}
         </Box>
       ))}
     </Box>

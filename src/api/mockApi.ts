@@ -35,9 +35,41 @@ let posts: Post[] = [
 ];
 
 export const fetchPosts = (page: number, limit: number): Post[] => {
-  const start = page * limit;
-  const end = start + limit;
-  return posts.slice(start, end);
+  const generatedPosts: Post[] = [];
+  for (let i = 0; i < limit; i++) {
+    const id = page * limit + i;
+    const post: Post = {
+      id,
+      user: `User${id}`,
+      time: `${i + 1}h ago`,
+      content: `This is a sample post about $AAPL #trading`,
+      likes: Math.floor(Math.random() * 100),
+      comments: [],
+      shares: 0,
+    };
+
+    // Add some variation to the posts
+    if (id % 2 === 0) {
+      post.sentiment = Math.random() > 0.5 ? 'bullish' : 'bearish';
+    }
+    if (id % 3 === 0) {
+      post.media = {
+        type: Math.random() > 0.5 ? 'photo' : 'video',
+        url: 'https://via.placeholder.com/300',
+      };
+    }
+    if (id % 5 === 0) {
+      post.priceUpdate = {
+        symbol: 'AAPL',
+        price: 150 + Math.random() * 10,
+        change: (Math.random() - 0.5) * 5,
+        type: 'stock',
+      };
+    }
+
+    generatedPosts.push(post);
+  }
+  return generatedPosts;
 };
 
 export const addPost = async (post: Post): Promise<void> => {

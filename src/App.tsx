@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { Routes, Route, Link } from 'react-router-dom';
-import { darkTheme } from './theme';
+import { darkTheme, lightTheme } from './theme';
 import Toolbar from './components/Toolbar';
 import Feed from './components/Feed';
 import Profile from './components/Profile';
@@ -34,6 +34,14 @@ import Terms from './components/Terms';
 import Footer from './components/Footer';
 import Explore from './components/Explore';
 import Games from './components/Games';
+import StockDetails from './components/StockDetails';
+import ProfileCustomization from './components/ProfileCustomization';
+import Alerts from './components/Alerts';
+import EducationHub from './components/EducationHub';
+import TradeIdeas from './components/TradeIdeas';
+import EarningsCalendar from './components/EarningsCalendar';
+import MarketMovers from './components/MarketMovers';
+import TradeSimulator from './components/TradeSimulator';
 import {
   Feed as FeedIcon,
   Timeline as ActivityIcon,
@@ -48,6 +56,12 @@ import {
   Explore as ExploreIcon,
   Games as GamesIcon,
   Login as LoginIcon,
+  Notifications as AlertsIcon,
+  School as EducationIcon,
+  Lightbulb as IdeasIcon,
+  Event as CalendarIcon,
+  TrendingUp as MoversIcon,
+  Simulate as SimulatorIcon,
 } from '@mui/icons-material';
 import './App.css';
 
@@ -55,6 +69,7 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [isMobileView, setIsMobileView] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const handleLogin = (username: string) => {
     setIsAuthenticated(true);
@@ -66,12 +81,16 @@ const App: React.FC = () => {
     setUsername(null);
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => !prev);
+  };
+
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <CssBaseline />
       <Toolbar
-        isDarkMode={true}
-        toggleTheme={() => {}}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
         isAuthenticated={isAuthenticated}
         username={username}
         onLogin={handleLogin}
@@ -96,6 +115,24 @@ const App: React.FC = () => {
           </Link>
           <Link to="/portfolio" title="Portfolio Analytics">
             <Assessment />
+          </Link>
+          <Link to="/alerts" title="Alerts">
+            <AlertsIcon />
+          </Link>
+          <Link to="/education" title="Education Hub">
+            <EducationIcon />
+          </Link>
+          <Link to="/trade-ideas" title="Trade Ideas">
+            <IdeasIcon />
+          </Link>
+          <Link to="/earnings" title="Earnings Calendar">
+            <CalendarIcon />
+          </Link>
+          <Link to="/movers" title="Market Movers">
+            <MoversIcon />
+          </Link>
+          <Link to="/simulator" title="Trade Simulator">
+            <SimulatorIcon />
           </Link>
           <Link to="/wallet" title="Wallet">
             <AccountBalanceWallet />
@@ -127,6 +164,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Feed username={username} />} />
             <Route path="/profile" element={<Profile trades={200} followers={500} bio="Swing trader since 2015." />} />
+            <Route path="/profile/customize" element={<ProfileCustomization />} />
             <Route path="/news" element={<NewsTab />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/games" element={<Games />} />
@@ -140,6 +178,12 @@ const App: React.FC = () => {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/prices" element={<StockPrices />} />
             <Route path="/activity" element={<ActivityFeed />} />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/education" element={<EducationHub />} />
+            <Route path="/trade-ideas" element={<TradeIdeas />} />
+            <Route path="/earnings" element={<EarningsCalendar />} />
+            <Route path="/movers" element={<MarketMovers />} />
+            <Route path="/simulator" element={<TradeSimulator />} />
             <Route path="/wallet" element={<WalletConnect />} />
             <Route path="/nft-marketplace" element={<NFTMarketplace />} />
             <Route path="/identity" element={<DecentralizedIdentity />} />
@@ -153,6 +197,7 @@ const App: React.FC = () => {
             <Route path="/about" element={<About />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/stock/:ticker" element={<StockDetails />} />
           </Routes>
           <Footer />
         </div>

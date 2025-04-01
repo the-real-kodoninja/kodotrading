@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Tabs, Tab, Button, Card, CardContent, CardMedia, Select, MenuItem, TextField } from '@mui/material';
+import { Container, Typography, Box, Tabs, Tab, Button, Card, CardContent, CardMedia, Select, MenuItem, TextField, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 
 interface CandlestickPattern {
   name: string;
   description: string;
   type: 'bullish' | 'bearish' | 'reversal' | 'continuation' | 'other';
+}
+
+interface Player {
+  username: string;
+  score: number;
 }
 
 const candlestickPatterns: CandlestickPattern[] = [
@@ -42,11 +47,16 @@ const Games: React.FC = () => {
   const [guess, setGuess] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [score, setScore] = useState(0);
+  const [leaderboard, setLeaderboard] = useState<Player[]>([
+    { username: 'TraderX', score: 150 },
+    { username: 'StockGuru', score: 120 },
+    { username: 'NFTCollector', score: 100 },
+  ]);
 
   // Stock Market Prediction Game
   const handlePredict = () => {
     if (prediction === null) return;
-    const mockActualPrice = Math.random() * 100 + 50; // Mock price between 50 and 150
+    const mockActualPrice = Math.random() * 100 + 50;
     setActualPrice(mockActualPrice);
     const difference = Math.abs(prediction - mockActualPrice);
     const points = difference < 5 ? 10 : difference < 10 ? 5 : 0;
@@ -54,6 +64,17 @@ const Games: React.FC = () => {
     setFeedback(
       `Actual price: $${mockActualPrice.toFixed(2)}. Difference: $${difference.toFixed(2)}. You earned ${points} points!`
     );
+    // Update leaderboard (mock for now)
+    setLeaderboard((prev) => {
+      const updated = [...prev];
+      const playerIndex = updated.findIndex((p) => p.username === 'You');
+      if (playerIndex >= 0) {
+        updated[playerIndex].score += points;
+      } else {
+        updated.push({ username: 'You', score: points });
+      }
+      return updated.sort((a, b) => b.score - a.score);
+    });
   };
 
   // Candlestick Pattern Guessing Game
@@ -69,13 +90,24 @@ const Games: React.FC = () => {
     if (guess === candlestickPattern.name) {
       setScore((prev) => prev + 10);
       setFeedback('Correct! +10 points');
+      // Update leaderboard
+      setLeaderboard((prev) => {
+        const updated = [...prev];
+        const playerIndex = updated.findIndex((p) => p.username === 'You');
+        if (playerIndex >= 0) {
+          updated[playerIndex].score += 10;
+        } else {
+          updated.push({ username: 'You', score: 10 });
+        }
+        return updated.sort((a, b) => b.score - a.score);
+      });
     } else {
       setFeedback(`Incorrect. The pattern was ${candlestickPattern.name}.`);
     }
   };
 
   useEffect(() => {
-    startNewPattern(); // Start with a random pattern
+    startNewPattern();
   }, []);
 
   return (
@@ -84,8 +116,31 @@ const Games: React.FC = () => {
         KodoTrading Games
       </Typography>
       <Typography variant="body1" sx={{ mb: 2 }}>
-        Score: {score}
+        Your Score: {score}
       </Typography>
+      <Box sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', p: 2, borderRadius: 2, mb: 2 }}>
+        <Typography variant="h6" sx={{ fontSize: '1rem', mb: 2 }}>
+          Leaderboard
+        </Typography>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Rank</TableCell>
+              <TableCell>Username</TableCell>
+              <TableCell>Score</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {leaderboard.map((player, index) => (
+              <TableRow key={player.username}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{player.username}</TableCell>
+                <TableCell>{player.score}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Box>
       <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)} sx={{ mb: 2 }}>
         <Tab label="Stock Market Prediction" />
         <Tab label="Guess the Candlestick Pattern" />

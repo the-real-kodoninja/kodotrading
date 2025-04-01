@@ -21,19 +21,23 @@ interface Post {
   tradeSettings?: { stopLoss: number; takeProfit: number; trailingStop: boolean };
 }
 
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
   }
 
   render() {
     if (this.state.hasError) {
-      return <Typography color="error">Something went wrong in the Feed. Please try again later.</Typography>;
+      return (
+        <Typography color="error">
+          Something went wrong in the Feed. Please try again later. Error: {this.state.error?.message}
+        </Typography>
+      );
     }
     return this.props.children;
   }
@@ -43,68 +47,24 @@ const Feed: React.FC<{ username: string | null }> = ({ username }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(0);
   const [filterTicker, setFilterTicker] = useState('');
-  const [filterType, setFilterType] = useState(0); // 0: All, 1: Photos, 2: Videos, 3: NFTs, 4: Price Updates
+  const [filterType, setFilterType] = useState(0);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [ruleWarnings, setRuleWarnings] = useState<string[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const mockPosts: Post[] = [
-      ...fetchPosts(page, 5),
-      {
-        id: 100,
-        user: 'NFTCollector',
-        time: '1h ago',
-        content: 'Just minted this awesome NFT!',
-        likes: 5,
-        comments: [],
-        shares: 0,
-        nft: {
-          name: 'CryptoPunk #123',
-          image: 'https://via.placeholder.com/150',
-          details: [
-            { trait: 'Hat', value: 'Beanie' },
-            { trait: 'Eyes', value: 'Sunglasses' },
-            { trait: 'Rarity', value: 'Rare' },
-          ],
-        },
-      },
-      {
-        id: 101,
-        user: 'MarketBot',
-        time: '30m ago',
-        content: '',
-        likes: 0,
-        comments: [],
-        shares: 0,
-        priceUpdate: { symbol: 'BTC', price: 60000, change: 1.5, type: 'crypto' },
-      },
-      {
-        id: 102,
-        user: 'TraderY',
-        time: '20m ago',
-        content: 'Check out this chart!',
-        likes: 3,
-        comments: [],
-        shares: 0,
-        media: { type: 'photo', url: 'https://via.placeholder.com/300' },
-      },
-      {
-        id: 103,
-        user: 'TraderZ',
-        time: '15m ago',
-        content: 'Live analysis video!',
-        likes: 7,
-        comments: [],
-        shares: 0,
-        media: { type: 'video', url: 'https://via.placeholder.com/300' },
-      },
-    ];
-    setPosts((prev) => [
-      ...prev,
-      ...mockPosts.map((p, i) => ({ ...p, id: prev.length + i, shares: p.shares || 0 })),
-    ]);
+    try {
+      const fetchedPosts = fetchPosts(page, 5);
+      console.log('Fetched posts:', fetchedPosts);
+      setPosts((prev) => [
+        ...prev,
+        ...fetchedPosts.map((p, i) => ({ ...p, id: prev.length + i, shares: p.shares || 0 })),
+      ]);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      throw error;
+    }
   }, [page]);
 
   useEffect(() => {

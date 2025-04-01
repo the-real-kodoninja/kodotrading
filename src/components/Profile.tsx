@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, Avatar, Grid, Card, CardContent, CardMedia } from '@mui/material';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { fetchPosts } from '../api/mockApi';
 
 interface ProfileProps {
@@ -47,6 +48,7 @@ const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 2 }}>
+      {/* Header Section */}
       <Box
         sx={{
           height: 200,
@@ -69,6 +71,7 @@ const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
         />
       </Box>
 
+      {/* Profile Info Section */}
       <Box sx={{ ml: 20, mb: 4 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>TraderX</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{bio}</Typography>
@@ -91,6 +94,17 @@ const Profile: React.FC<ProfileProps> = ({ trades, followers, bio }) => {
         )}
       </Box>
 
+      {/* Customize Profile Section */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h6" sx={{ fontSize: '1rem' }}>
+          User Profile
+        </Typography>
+        <Button component={Link} to="/profile/customize" variant="outlined">
+          Customize Profile
+        </Button>
+      </Box>
+
+      {/* Recent Posts and NFTs Section */}
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <Typography variant="h6" sx={{ fontSize: '1rem', mb: 2 }}>Recent Posts</Typography>

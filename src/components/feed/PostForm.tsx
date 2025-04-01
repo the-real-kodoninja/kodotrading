@@ -1,119 +1,142 @@
-import React, { useState, useRef } from 'react';
-import { Box, TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { applyTradingRules } from '../../utils/tradingRules';
-import { addPost } from '../../api/mockApi';
-
-interface Post {
-  id: number;
-  user: string;
-  time: string;
-  content: string;
-  likes: number;
-  comments: string[];
-  shares: number;
-  sentiment?: 'bullish' | 'bearish';
-  media?: { type: 'photo' | 'video' | 'stock'; url: string };
-  tradeSettings?: { stopLoss: number; takeProfit: number; trailingStop: boolean };
-}
+import React, { useState } from 'react';
+import { Box, TextField, Button, Select, MenuItem, FormControlLabel, Switch } from '@mui/material';
 
 interface PostFormProps {
   username: string | null;
-  onPostSubmit: (post: Post) => void;
-  setRuleWarnings: (warnings: string[]) => void;
+  onPostSubmit: (post: any) => void;
+  setRuleWarnings: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const PostForm: React.FC<PostFormProps> = ({ username, onPostSubmit, setRuleWarnings }) => {
-  const [newPost, setNewPost] = useState('');
-  const [stopLoss, setStopLoss] = useState<number>(0);
-  const [takeProfit, setTakeProfit] = useState<number>(0);
-  const [trailingStop, setTrailingStop] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [content, setContent] = useState('');
+  const [sentiment, setSentiment] = useState('');
+  const [mediaType, setMediaType] = useState('');
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [stopLoss, setStopLoss] = useState('');
+  const [takeProfit, setTakeProfit] = useState('');
+  const [trailingStop, setTrailingStop] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPost.trim()) return;
-
-    const warnings = applyTradingRules(newPost, { stopLoss, takeProfit, trailingStop });
-    if (warnings.length > 0) {
-      setRuleWarnings(warnings);
+  const handleSubmit = () => {
+    if (!username) {
+      alert('Please log in to post.');
       return;
     }
+    if (!content.trim()) return;
 
-    const sentiment = newPost.toLowerCase().includes('bull') ? 'bullish' : newPost.toLowerCase().includes('bear') ? 'bearish' : undefined;
-    const media = fileInputRef.current?.files?.[0]
-      ? { type: fileInputRef.current.files[0].type.startsWith('video') ? 'video' : 'photo', url: URL.createObjectURL(fileInputRef.current.files[0]) }
-      : undefined;
-    const post: Post = {
-      id: Date.now(), // Temporary ID until backend
-      user: username || 'Guest',
+    const warnings: string[] = [];
+    if (content.toLowerCase().includes('guarantee')) {
+      warnings.push('Avoid using "guarantee" in posts.');
+    }
+    if (content.length > 280) {
+      warnings.push('Post exceeds 280 characters.');
+    }
+    setRuleWarnings(warnings);
+
+    if (warnings.length > 0) return;
+
+    const post: any = {
+      id: Date.now(),
+      user: username,
       time: 'Just now',
-      content: newPost,
+      content,
       likes: 0,
       comments: [],
       shares: 0,
-      sentiment,
-      media,
-      tradeSettings: { stopLoss, takeProfit, trailingStop },
     };
-    await addPost(post);
+
+    if (sentiment) {
+      post.sentiment = sentiment;
+    }
+    if (mediaType && mediaUrl) {
+      post.media = { type: mediaType, url: mediaUrl };
+    }
+    if (stopLoss || takeProfit) {
+      post.tradeSettings = {
+        stopLoss: stopLoss ? Number(stopLoss) : 0,
+        takeProfit: takeProfit ? Number(takeProfit) : 0,
+        trailingStop,
+      };
+    }
+
     onPostSubmit(post);
-
-    // Play sound alert
-    const audio = new Audio('/src/assets/alert.wav');
-    audio.play().catch((err) => console.log('Audio play failed:', err));
-
-    setNewPost('');
-    setStopLoss(0);
-    setTakeProfit(0);
+    setContent('');
+    setSentiment('');
+    setMediaType('');
+    setMediaUrl('');
+    setStopLoss('');
+    setTakeProfit('');
     setTrailingStop(false);
-    setRuleWarnings([]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
+    <Box sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', p: 2, borderRadius: 2, mb: 2 }}>
       <TextField
         fullWidth
-        placeholder="Share your trading thoughts (e.g., $AAPL bullish)"
-        value={newPost}
-        onChange={(e) => setNewPost(e.target.value)}
+        placeholder="What's on your mind?"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
         variant="outlined"
-        sx={{ mb: 1 }}
+        multiline
+        rows={3}
+        sx={{ mb: 2 }}
       />
-      <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2, mb: 2 }}>
+        <Select
+          value={sentiment}
+          onChange={(e) => setSentiment(e.target.value)}
+          displayEmpty
+          size="small"
+          sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}
+        >
+          <MenuItem value="">Sentiment</MenuItem>
+          <MenuItem value="bullish">Bullish</MenuItem>
+          <MenuItem value="bearish">Bearish</MenuItem>
+        </Select>
+        <Select
+          value={mediaType}
+          onChange={(e) => setMediaType(e.target.value)}
+          displayEmpty
+          size="small"
+          sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}
+        >
+          <MenuItem value="">Media Type</MenuItem>
+          <MenuItem value="photo">Photo</MenuItem>
+          <MenuItem value="video">Video</MenuItem>
+        </Select>
+        {mediaType && (
+          <TextField
+            label="Media URL"
+            value={mediaUrl}
+            onChange={(e) => setMediaUrl(e.target.value)}
+            variant="outlined"
+            size="small"
+          />
+        )}
         <TextField
-          label="Stop Loss (%)"
+          label="Stop Loss ($)"
           type="number"
           value={stopLoss}
-          onChange={(e) => setStopLoss(Number(e.target.value))}
+          onChange={(e) => setStopLoss(e.target.value)}
+          variant="outlined"
           size="small"
-          sx={{ width: 120 }}
         />
         <TextField
-          label="Take Profit (%)"
+          label="Take Profit ($)"
           type="number"
           value={takeProfit}
-          onChange={(e) => setTakeProfit(Number(e.target.value))}
+          onChange={(e) => setTakeProfit(e.target.value)}
+          variant="outlined"
           size="small"
-          sx={{ width: 120 }}
         />
-        <FormControl sx={{ width: 120 }}>
-          <InputLabel>Trailing Stop</InputLabel>
-          <Select
-            value={trailingStop ? 'Yes' : 'No'}
-            onChange={(e) => setTrailingStop(e.target.value === 'Yes')}
-            size="small"
-          >
-            <MenuItem value="Yes">Yes</MenuItem>
-            <MenuItem value="No">No</MenuItem>
-          </Select>
-        </FormControl>
+        <FormControlLabel
+          control={<Switch checked={trailingStop} onChange={(e) => setTrailingStop(e.target.checked)} />}
+          label="Trailing Stop"
+        />
       </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <input type="file" ref={fileInputRef} accept="image/*,video/*" style={{ color: '#E4E6EB' }} />
-        <Button type="submit" variant="contained" color="primary">Post</Button>
-      </Box>
-    </form>
+      <Button variant="contained" color="primary" onClick={handleSubmit}>
+        Post
+      </Button>
+    </Box>
   );
 };
 

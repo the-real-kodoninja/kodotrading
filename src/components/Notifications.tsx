@@ -1,51 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, List, ListItem, ListItemText, IconButton } from '@mui/material';
-import { Notifications as NotificationsIcon, Close } from '@mui/icons-material';
+import { Container, Typography, Box, List, ListItem, ListItemText } from '@mui/material';
 
 interface Notification {
   id: number;
   message: string;
-  time: string;
+  timestamp: string;
 }
 
 const Notifications: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    // Mock notifications
-    const mockNotifications = [
-      { id: 1, message: 'TraderX liked your post on $AAPL', time: '2m ago' },
-      { id: 2, message: 'StockGuru commented on your post', time: '5m ago' },
-      { id: 3, message: '$TSLA dropped below your stop-loss', time: '10m ago' },
+    // Simulate notifications for group chat messages and live video events
+    const mockNotifications: Notification[] = [
+      { id: 1, message: 'New message in Traders Lounge: "Check out $AAPL!"', timestamp: '2m ago' },
+      { id: 2, message: 'Live video started: $BTC Analysis by StockGuru', timestamp: '5m ago' },
     ];
     setNotifications(mockNotifications);
-  }, []);
 
-  const handleDismiss = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
+    // Simulate new notifications every 30 seconds
+    const interval = setInterval(() => {
+      const newNotification: Notification = {
+        id: notifications.length + 1,
+        message: `New message in Crypto Crew: "What’s your take on $ETH?"`,
+        timestamp: 'Just now',
+      };
+      setNotifications((prev) => [...prev, newNotification]);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Container maxWidth="sm" sx={{ mt: 2 }}>
-      <Typography variant="h6">Notifications</Typography>
-      {notifications.length ? (
-        <List sx={{ bgcolor: 'background.paper', borderRadius: 2 }}>
-          {notifications.map((notif) => (
-            <ListItem
-              key={notif.id}
-              secondaryAction={
-                <IconButton edge="end" onClick={() => handleDismiss(notif.id)}>
-                  <Close />
-                </IconButton>
-              }
-            >
-              <ListItemText primary={notif.message} secondary={notif.time} />
+      <Typography variant="h6" sx={{ fontSize: '1rem', mb: 2 }}>
+        Notifications
+      </Typography>
+      <Box sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', p: 2, borderRadius: 2, maxHeight: 400, overflowY: 'auto' }}>
+        <List>
+          {notifications.map((notification) => (
+            <ListItem key={notification.id}>
+              <ListItemText primary={notification.message} secondary={notification.timestamp} />
             </ListItem>
           ))}
         </List>
-      ) : (
-        <Typography variant="body2" color="text.secondary">No new notifications</Typography>
-      )}
+      </Box>
     </Container>
   );
 };

@@ -3,18 +3,25 @@ import { createTheme } from '@mui/material/styles';
 export const lightTheme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: '#8B0000' },
-    secondary: { main: '#3A3B3C' },
-    background: {
-      default: 'linear-gradient(135deg, #F0F2F5 0%, #E8ECEF 100%)', // Subtle gradient
-      paper: '#FFFFFF',
+    primary: {
+      main: '#1976d2',
     },
-    text: { primary: '#1C2526', secondary: '#65676B' },
+    secondary: {
+      main: '#f50057',
+    },
+    background: {
+      default: '#F5F5F5', // Light background for the entire app
+      paper: '#FFFFFF', // White background for cards, containers, etc.
+    },
+    text: {
+      primary: '#000000',
+      secondary: '#666666',
+    },
   },
   typography: {
     fontFamily: 'Roboto, "Helvetica Neue", sans-serif',
     h6: { fontWeight: 600 },
-    body2: { color: '#65676B' },
+    body2: { color: '#666666' },
   },
   components: {
     MuiCard: {
@@ -35,13 +42,20 @@ export const lightTheme = createTheme({
 export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
-    primary: { main: '#8B0000' },
-    secondary: { main: '#E4E6EB' },
-    background: {
-      default: 'linear-gradient(135deg, #18191A 0%, #242526 100%)', // Subtle dark gradient
-      paper: '#2D2E2F',
+    primary: {
+      main: '#1976d2',
     },
-    text: { primary: '#E4E6EB', secondary: '#B0B3B8' },
+    secondary: {
+      main: '#f50057',
+    },
+    background: {
+      default: '#18191A', // Dark background for the entire app
+      paper: '#242526', // Slightly lighter background for cards, containers, etc.
+    },
+    text: {
+      primary: '#E4E6EB',
+      secondary: '#B0B3B8',
+    },
   },
   typography: {
     fontFamily: 'Roboto, "Helvetica Neue", sans-serif',

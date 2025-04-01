@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
 import {
-  Card, Box, Typography, IconButton, Link, Button, TextField, Menu, MenuItem,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  IconButton,
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  CardMedia,
+  Chip,
 } from '@mui/material';
-import { ThumbUp, Comment, Share, Delete, EmojiEmotions } from '@mui/icons-material';
-import { motion } from 'framer-motion';
-import { fetchNews } from '../../api/mockNews';
+import { ThumbUp, Delete, Share, AddCircle } from '@mui/icons-material';
 
 interface Post {
   id: number;
@@ -40,186 +49,139 @@ const PostCard: React.FC<PostCardProps> = ({
   onShare,
   addToWatchlist,
 }) => {
-  const [commentInput, setCommentInput] = useState('');
-  const [showChart, setShowChart] = useState<string | null>(null);
-  const [news, setNews] = useState<any[]>([]);
-  const [shareAnchorEl, setShareAnchorEl] = useState<null | HTMLElement>(null);
+  const [comment, setComment] = useState('');
 
-  const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setShareAnchorEl(event.currentTarget);
+  const handleCommentSubmit = () => {
+    if (!comment.trim()) return;
+    onCommentSubmit(post.id, comment);
+    setComment('');
   };
 
-  const handleShareClose = () => {
-    setShareAnchorEl(null);
+  const extractTicker = (content: string) => {
+    const match = content.match(/\$[A-Z]+/);
+    return match ? match[0].replace('$', '') : null;
   };
 
-  const handleShareAction = (platform: 'twitter' | 'email') => {
-    const shareText = `${post.user}: ${post.content} via KodoTrading`;
-    let shareUrl = '';
-    if (platform === 'twitter') {
-      shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-    } else if (platform === 'email') {
-      shareUrl = `mailto:?subject=Check out this post on KodoTrading&body=${encodeURIComponent(shareText)}`;
-    }
-    window.open(shareUrl, '_blank');
-    onShare(post.id);
-    handleShareClose();
-  };
-
-  const renderContentWithTickers = (content: string) => {
-    const tickerRegex = /\$([A-Z]{1,5})/g;
-    const tagRegex = /@([A-Za-z0-9_]+)/g;
-    const parts = content.split(tickerRegex);
-    return parts.map((part, i) =>
-      tickerRegex.test(`$${part}`) ? (
-        <Link
-          key={i}
-          href="#"
-          onClick={async (e) => {
-            e.preventDefault();
-            setShowChart(part);
-            const newsItems = await fetchNews(part);
-            setNews(newsItems);
-            addToWatchlist(part);
-          }}
-          sx={{ color: 'primary.main', cursor: 'pointer' }}
-        >
-          ${part}
-        </Link>
-      ) : (
-        part.split(tagRegex).map((subPart, j) =>
-          tagRegex.test(`@${subPart}`) ? (
-            <Link key={`${i}-${j}`} href={`/profile/${subPart}`} sx={{ color: 'primary.main', cursor: 'pointer' }}>
-              @{subPart}
-            </Link>
-          ) : (
-            subPart
-          )
-        )
-      )
-    );
-  };
+  const ticker = extractTicker(post.content);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <Card sx={{ mb: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <motion.img
-              src={`https://ui-avatars.com/api/?name=${post.user}&background=8B0000&color=FFFFFF`}
-              alt={post.user}
-              style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 12 }}
-              whileHover={{ scale: 1.1 }}
-              transition={{ duration: 0.2 }}
-            />
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                {post.user} <Typography component="span" variant="caption" color="text.secondary">(Trader)</Typography>
-              </Typography>
-              <Typography variant="caption" color="text.secondary">{post.time}</Typography>
-            </Box>
-          </Box>
-          {post.user === username && <IconButton onClick={() => onDelete(post.id)}><Delete fontSize="small" /></IconButton>}
-        </Box>
-        {post.content && <Typography variant="body1">{renderContentWithTickers(post.content)}</Typography>}
-        {post.sentiment && (
-          <Typography component="span" sx={{ color: post.sentiment === 'bullish' ? '#2E7D32' : '#D32F2F', fontWeight: 600, fontSize: '0.9rem' }}>
-            [{post.sentiment}]
+    <Card sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', mb: 2, borderRadius: 2 }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            {post.user} • {post.time}
           </Typography>
-        )}
-        {post.tradeSettings && (
-          <Box sx={{ mt: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              Trade Settings: Stop Loss: {post.tradeSettings.stopLoss}%, Take Profit: {post.tradeSettings.takeProfit}%, Trailing Stop: {post.tradeSettings.trailingStop ? 'Yes' : 'No'}
-            </Typography>
-          </Box>
+          {username === post.user && (
+            <IconButton onClick={() => onDelete(post.id)} size="small">
+              <Delete />
+            </IconButton>
+          )}
+        </Box>
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          {post.content}
+        </Typography>
+        {post.sentiment && (
+          <Chip
+            label={post.sentiment.charAt(0).toUpperCase() + post.sentiment.slice(1)}
+            color={post.sentiment === 'bullish' ? 'success' : 'error'}
+            size="small"
+            sx={{ mb: 2 }}
+          />
         )}
         {post.media && (
-          post.media.type === 'photo' ? <img src={post.media.url} alt="Post media" style={{ maxWidth: '100%', borderRadius: 8, mt: 1 }} /> :
-          <video src={post.media.url} controls style={{ maxWidth: '100%', borderRadius: 8, mt: 1 }} />
+          <CardMedia
+            component={post.media.type === 'video' ? 'video' : 'img'}
+            controls={post.media.type === 'video'}
+            src={post.media.url}
+            sx={{ height: 200, borderRadius: 2, mb: 2 }}
+          />
         )}
         {post.nft && (
-          <Box sx={{ mt: 2, display: 'flex', overflowX: 'auto', gap: 2, pb: 1 }}>
-            <Box sx={{ minWidth: 150, flexShrink: 0 }}>
-              <img src={post.nft.image} alt={post.nft.name} style={{ width: '100%', borderRadius: 8 }} />
-              <Typography variant="body2" sx={{ mt: 1 }}>{post.nft.name}</Typography>
-            </Box>
-            {post.nft.details.map((detail, i) => (
-              <Box key={i} sx={{ minWidth: 150, flexShrink: 0, bgcolor: 'rgba(255, 255, 255, 0.05)', p: 1, borderRadius: 2 }}>
-                <Typography variant="body2">{detail.trait}: {detail.value}</Typography>
-              </Box>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2">{post.nft.name}</Typography>
+            <CardMedia component="img" src={post.nft.image} sx={{ height: 100, width: 100, borderRadius: 2, mb: 1 }} />
+            {post.nft.details.map((detail, index) => (
+              <Typography key={index} variant="caption" color="text.secondary">
+                {detail.trait}: {detail.value} |{' '}
+              </Typography>
             ))}
           </Box>
         )}
         {post.priceUpdate && (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mb: 2 }}>
             <Typography variant="body2">
-              {post.priceUpdate.type === 'crypto' ? '' : '$'}{post.priceUpdate.symbol}: ${post.priceUpdate.price.toFixed(2)}
-              <Typography component="span" sx={{ ml: 1, color: post.priceUpdate.change >= 0 ? '#2E7D32' : '#D32F2F' }}>
-                {post.priceUpdate.change.toFixed(2)}%
-              </Typography>
+              {post.priceUpdate.symbol} {post.priceUpdate.type === 'stock' ? 'Stock' : 'Crypto'} Price: $
+              {post.priceUpdate.price.toFixed(2)} (
+              <span style={{ color: post.priceUpdate.change >= 0 ? '#00FF00' : '#FF0000' }}>
+                {post.priceUpdate.change >= 0 ? '+' : ''}{post.priceUpdate.change.toFixed(2)}%
+              </span>
+              )
             </Typography>
-            <Box sx={{ mt: 1 }}>
-              <FormControl sx={{ width: 120, mb: 1 }}>
-                <InputLabel>Chart Type</InputLabel>
-                <Select value="Candlestick" size="small">
-                  <MenuItem value="Candlestick">Candlestick</MenuItem>
-                  <MenuItem value="Heikin-Ashi">Heikin-Ashi</MenuItem>
-                  <MenuItem value="Renko">Renko</MenuItem>
-                </Select>
-              </FormControl>
-              <Box sx={{ height: 100, bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  Chart for {post.priceUpdate.type === 'crypto' ? '' : '$'}{post.priceUpdate.symbol} (Mock)
-                </Typography>
-              </Box>
-            </Box>
           </Box>
         )}
-        {showChart && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">Chart for ${showChart} (Disabled due to error)</Typography>
-            <Button onClick={() => setShowChart(null)} sx={{ mt: 1 }}>Hide Chart</Button>
+        {post.tradeSettings && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              Stop Loss: ${post.tradeSettings.stopLoss.toFixed(2)} | Take Profit: $
+              {post.tradeSettings.takeProfit.toFixed(2)} | Trailing Stop: {post.tradeSettings.trailingStop ? 'Yes' : 'No'}
+            </Typography>
           </Box>
         )}
-        {news.length > 0 && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">News for ${showChart}</Typography>
-            {news.map((item, i) => (
-              <Typography key={i} variant="body2">
-                <Link href={item.url} target="_blank">{item.title}</Link> - {item.source}
-              </Typography>
-            ))}
-          </Box>
-        )}
-        <Box sx={{ display: 'flex', gap: 1, mt: 1, color: 'text.secondary' }}>
-          <IconButton onClick={() => onLike(post.id)}><ThumbUp fontSize="small" /> {post.likes}</IconButton>
-          <IconButton><Comment fontSize="small" /> {post.comments.length}</IconButton>
-          <IconButton onClick={handleShare}><Share fontSize="small" /> {post.shares}</IconButton>
-          <IconButton><EmojiEmotions fontSize="small" /></IconButton>
-        </Box>
-        <Menu anchorEl={shareAnchorEl} open={Boolean(shareAnchorEl)} onClose={handleShareClose}>
-          <MenuItem onClick={() => handleShareAction('twitter')}>Share to Twitter</MenuItem>
-          <MenuItem onClick={() => handleShareAction('email')}>Share via Email</MenuItem>
-        </Menu>
-        {post.comments.map((comment, cIndex) => (
-          <Typography key={cIndex} variant="body2" sx={{ mt: 1, ml: 2, color: 'text.secondary' }}>
-            {renderContentWithTickers(comment)}
-          </Typography>
-        ))}
-        <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-          <TextField
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+          <Button
+            startIcon={<ThumbUp />}
+            onClick={() => onLike(post.id)}
             size="small"
-            placeholder="Add a comment"
-            value={commentInput}
-            onChange={(e) => setCommentInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && (onCommentSubmit(post.id, commentInput), setCommentInput(''))}
-            sx={{ flexGrow: 1 }}
-          />
-          <Button size="small" onClick={() => (onCommentSubmit(post.id, commentInput), setCommentInput(''))}>Comment</Button>
+            variant="outlined"
+            sx={{ borderRadius: 20 }}
+          >
+            {post.likes}
+          </Button>
+          <Button
+            startIcon={<Share />}
+            onClick={() => onShare(post.id)}
+            size="small"
+            variant="outlined"
+            sx={{ borderRadius: 20 }}
+          >
+            {post.shares}
+          </Button>
+          {ticker && (
+            <Button
+              startIcon={<AddCircle />}
+              onClick={() => addToWatchlist(ticker)}
+              size="small"
+              variant="outlined"
+              sx={{ borderRadius: 20 }}
+            >
+              Watchlist
+            </Button>
+          )}
         </Box>
-      </Card>
-    </motion.div>
+        <List sx={{ mb: 2 }}>
+          {post.comments.map((c, index) => (
+            <ListItem key={index} sx={{ py: 0 }}>
+              <ListItemText primary={c} />
+            </ListItem>
+          ))}
+        </List>
+        {username && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
+              fullWidth
+              placeholder="Add a comment..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              variant="outlined"
+              size="small"
+            />
+            <Button onClick={handleCommentSubmit} variant="contained" size="small">
+              Post
+            </Button>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

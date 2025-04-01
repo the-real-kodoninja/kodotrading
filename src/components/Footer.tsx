@@ -22,14 +22,32 @@ const Footer: React.FC = () => {
       <Typography variant="body2">
         © 2025 Kodoverse. All rights reserved.
       </Typography>
-      <Box sx={{ display: 'flex', gap: 2 }}>
-        <Link component={RouterLink} to="/about" color="inherit" underline="hover">
+      <Box sx={{ display: 'flex', gap: 3 }}>
+        <Link
+          component={RouterLink}
+          to="/about"
+          color="inherit"
+          underline="none"
+          sx={{ '&:hover': { color: '#1976d2', transition: 'color 0.3s' } }}
+        >
           About
         </Link>
-        <Link component={RouterLink} to="/legal" color="inherit" underline="hover">
+        <Link
+          component={RouterLink}
+          to="/legal"
+          color="inherit"
+          underline="none"
+          sx={{ '&:hover': { color: '#1976d2', transition: 'color 0.3s' } }}
+        >
           Legal
         </Link>
-        <Link component={RouterLink} to="/terms" color="inherit" underline="hover">
+        <Link
+          component={RouterLink}
+          to="/terms"
+          color="inherit"
+          underline="none"
+          sx={{ '&:hover': { color: '#1976d2', transition: 'color 0.3s' } }}
+        >
           Terms & Conditions
         </Link>
       </Box>
