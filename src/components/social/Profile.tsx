@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, Avatar, Grid, Card, CardContent, CardMedia } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { fetchPosts } from '../api/mockApi';
+import { fetchPosts } from '../../api/mockApi';
 
 interface ProfileProps {
   trades: number;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, List, ListItem, ListItemText } from '@mui/material';
-import { fetchPosts } from '../api/mockApi';
+import { fetchPosts } from '../../api/mockApi';
 
 interface Activity {
   user: string;

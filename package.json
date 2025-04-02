@@ -7,20 +7,42 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.ts"
+    ]
   },
   "dependencies": {
+    "@axe-core/react": "^4.10.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.1",
     "@mui/material": "^7.0.1",
+    "@web3-react/core": "^8.2.3",
+    "@web3-react/injected-connector": "^6.0.7",
+    "axios": "^1.8.4",
+    "chart.js": "^4.4.8",
+    "ethers": "^6.13.5",
+    "eventemitter3": "^5.0.1",
+    "firebase": "^11.6.0",
     "framer-motion": "^12.6.2",
     "react": "^19.0.0",
+    "react-axe": "^3.5.4",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.4.1"
+    "react-hook-form": "^7.55.0",
+    "react-router-dom": "^7.4.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
@@ -28,6 +50,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "jest": "^29.7.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^5.4.8"
